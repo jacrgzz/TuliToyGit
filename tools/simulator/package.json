@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Simulador de juguete y caja de Tuli + provisión de datos de demo",
+  "description": "Simulador de juguete y caja de Tuli + provisi\u00f3n de datos de demo",
   "scripts": {
     "provision": "tsx --env-file=../../apps/web/.env.local provision.ts",
     "simulate": "tsx --env-file=../../apps/web/.env.local simulate.ts",
-    "check-rls": "tsx --env-file=../../apps/web/.env.local check-rls.ts"
+    "check-rls": "tsx --env-file=../../apps/web/.env.local check-rls.ts",
+    "link": "tsx --env-file=../../apps/web/.env.local link-user.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0"
