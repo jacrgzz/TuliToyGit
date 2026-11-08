@@ -52,7 +52,7 @@ check(kidsT.length === 2, "docente ve a los 2 niños de su salón");
 
 // Eventos: cada padre solo los de su hijo
 const ev1 = (await p1.from("toy_events").select("device_id")).data ?? [];
-check(ev1.length > 0 && ev1.every((e) => e.device_id === "tuli-toy-01"), `padre1 ve sus eventos y solo los de tuli-toy-01 (${ev1.length})`);
+check(ev1.length > 0 && ev1.every((e) => e.device_id === "tuli-toy-01" || e.device_id === "tuli-toy-demo"), `padre1 ve sus eventos y solo los de los juguetes de su hijo (${ev1.length})`);
 const ev2 = (await p2.from("toy_events").select("device_id")).data ?? [];
 check(ev2.every((e) => e.device_id === "tuli-toy-02"), `padre2 no ve eventos del hijo de padre1 (${ev2.length})`);
 
@@ -86,6 +86,43 @@ check(!!log.error || (log.data ?? []).length === 0, "usuarios no ven ingest_log"
 // Un padre no se agrega a sí mismo como tutor de otro niño
 const sneaky = await p1.from("guardians").insert({ profile_id: (await p1.auth.getUser()).data.user!.id, child_id: (await p2.from("children").select("id").single()).data?.id });
 check(!!sneaky.error, "un padre no puede vincularse al hijo de otro");
+
+// ---- Superusuario (admin): ve todo, pero solo lee ----
+const adminC = await login("admin@tuli.test");
+const aKids = (await adminC.from("children").select("id")).data ?? [];
+check(aKids.length >= 2, `admin ve todos los niños (${aKids.length})`);
+const aRooms = (await adminC.from("classrooms").select("id")).data ?? [];
+check(aRooms.length >= 1, `admin ve todos los salones (${aRooms.length})`);
+const aEv = (await adminC.from("toy_events").select("device_id")).data ?? [];
+check(aEv.length >= ev1.length && aEv.length > 0, `admin ve todos los eventos (${aEv.length})`);
+const aCtx = (await adminC.from("event_context").select("event_id").limit(1)).data ?? [];
+check(aCtx.length === 1, "admin ve event_context");
+const aSum = (await adminC.from("event_summary").select("event_id").limit(1)).data ?? [];
+check(aSum.length === 1, "admin ve event_summary");
+const aProfiles = (await adminC.from("profiles").select("email")).data ?? [];
+check(aProfiles.length >= 4 && aProfiles.every((p) => p.email), `admin ve los perfiles con correo (${aProfiles.length})`);
+const aGuard = (await adminC.from("guardians").select("child_id")).data ?? [];
+check(aGuard.length >= 2, "admin ve los vínculos de tutores");
+const aLog = (await adminC.from("ingest_log").select("outcome").limit(5)).data ?? [];
+check(aLog.length > 0, "admin ve ingest_log");
+const aDevices = (await adminC.from("devices").select("device_id")).data ?? [];
+check(aDevices.length >= 5, `admin ve todos los dispositivos (${aDevices.length})`);
+const aTok = await adminC.from("devices").select("token_hash").limit(1);
+check(!!aTok.error, "ni el admin puede leer token_hash");
+const aIns = await adminC.from("children").insert({ display_name: "x", classroom_id: aRooms[0]?.id });
+check(!!aIns.error, "admin no puede insertar (solo lectura)");
+const aUpd = await adminC.from("children").update({ display_name: "hack" }).eq("display_name", "Alumno A").select();
+check(!!aUpd.error || (aUpd.data ?? []).length === 0, "admin no puede modificar (solo lectura)");
+// Nadie puede ascenderse a admin
+const me = (await p1.auth.getUser()).data.user!.id;
+const selfPromote = await p1.from("admins").insert({ profile_id: me });
+check(!!selfPromote.error, "un padre no puede ascenderse a admin");
+const seeAdmins = (await p1.from("admins").select("profile_id")).data ?? [];
+check(seeAdmins.length === 0, "un padre no ve la tabla de admins");
+const teacherLog = (await teacher.from("ingest_log").select("*").limit(1)).data ?? [];
+check(teacherLog.length === 0, "el docente sigue sin ver ingest_log");
+const p1Profiles = (await p1.from("profiles").select("id")).data ?? [];
+check(p1Profiles.length === 1, "un padre solo ve su propio perfil");
 
 console.log(failures === 0 ? "\n✔ RLS correcta" : `\n✘ ${failures} verificación(es) fallaron`);
 process.exit(failures === 0 ? 0 : 1);

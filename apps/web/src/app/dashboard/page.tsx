@@ -1,16 +1,31 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { AdminPanel } from "@/features/admin/components/AdminPanel";
 import { getViewerRole, requireUser } from "@/features/auth/queries";
 import { ChildActivityList } from "@/features/children/components/ChildActivityList";
 import { listMyChildren } from "@/features/children/queries";
 import { LiveRefresh } from "@/features/events/components/LiveRefresh";
 import { countRecentEventsByChild } from "@/features/events/queries";
-import { ConditionsPanel } from "@/features/readings/components/ConditionsPanel";
-import { getLatestReading } from "@/features/readings/queries";
+import { ClassroomView } from "./_components/ClassroomView";
 
 async function DashboardHome() {
   await requireUser();
-  const [role, children] = await Promise.all([getViewerRole(), listMyChildren()]);
+  const role = await getViewerRole();
+
+  // Superusuario de solo lectura: todo el sistema en un panel.
+  if (role === "admin") {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Panel de administración</h1>
+          <LiveRefresh />
+        </div>
+        <AdminPanel />
+      </div>
+    );
+  }
+
+  const children = await listMyChildren();
 
   if (children.length === 0) {
     return (
@@ -35,29 +50,8 @@ async function DashboardHome() {
     );
   }
 
-  // Docente: condiciones del salón y actividad de cada niño.
-  const classroomId = children[0].classroom_id;
-  const [reading, activity] = await Promise.all([
-    getLatestReading(classroomId),
-    countRecentEventsByChild(),
-  ]);
-
-  return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Panel del salón</h1>
-        <LiveRefresh />
-      </div>
-      <section>
-        <h2 className="mb-3 text-lg font-semibold">Condiciones del salón ahora</h2>
-        <ConditionsPanel reading={reading} />
-      </section>
-      <section>
-        <h2 className="mb-3 text-lg font-semibold">Niños del salón</h2>
-        <ChildActivityList kids={children} activity={activity} />
-      </section>
-    </div>
-  );
+  // Docente: su salón (condiciones y actividad de cada niño).
+  return <ClassroomView classroomId={children[0].classroom_id} title="Panel del salón" />;
 }
 
 export default function DashboardPage() {

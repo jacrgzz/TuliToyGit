@@ -32,9 +32,9 @@ async function ChildView({ params }: { params: PageProps<"/dashboard/ninos/[id]"
   return (
     <div className="space-y-8">
       <div>
-        {role === "teacher" && (
+        {role !== "guardian" && (
           <Link href="/dashboard" className="text-sm text-muted hover:underline">
-            ← Volver al salón
+            ← Volver al panel
           </Link>
         )}
         <div className="mt-1 flex items-center justify-between">

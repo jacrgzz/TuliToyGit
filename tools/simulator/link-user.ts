@@ -4,6 +4,7 @@
 //   npm run link -- correo@gmail.com guardian   → tutor de "Alumno A"
 //   npm run link -- correo@gmail.com teacher    → docente del "Salón demo"
 //   npm run link -- correo@gmail.com guardian --child "Alumno B"
+//   npm run link -- correo@gmail.com admin      → superusuario de SOLO LECTURA (ve todo)
 //
 // Es una herramienta de administración local (usa service_role); la invitación
 // desde la propia app queda para después.
@@ -21,8 +22,8 @@ const [email, role] = process.argv.slice(2);
 const childFlag = process.argv.indexOf("--child");
 const childName = childFlag >= 0 ? process.argv[childFlag + 1] : "Alumno A";
 
-if (!email || !email.includes("@") || (role !== "guardian" && role !== "teacher")) {
-  console.error("Uso: npm run link -- correo@gmail.com guardian|teacher [--child \"Alumno B\"]");
+if (!email || !email.includes("@") || (role !== "guardian" && role !== "teacher" && role !== "admin")) {
+  console.error("Uso: npm run link -- correo@gmail.com guardian|teacher|admin [--child \"Alumno B\"]");
   process.exit(1);
 }
 
@@ -39,7 +40,11 @@ if (!user) {
   process.exit(1);
 }
 
-if (role === "guardian") {
+if (role === "admin") {
+  const { error } = await admin.from("admins").upsert({ profile_id: user.id });
+  if (error) { console.error(`✘ ${error.message}`); process.exit(1); }
+  console.log(`✔ ${email} ahora es administrador (solo lectura: ve todos los niños, salones, dispositivos y la ingesta).`);
+} else if (role === "guardian") {
   const { data: child } = await admin.from("children").select("id").eq("display_name", childName).maybeSingle();
   if (!child) {
     console.error(`✘ No existe el niño "${childName}". Corre npm run provision.`);

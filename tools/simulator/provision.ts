@@ -87,11 +87,13 @@ async function ensureUser(email: string, role: "guardian" | "teacher", full_name
 const padre1 = await ensureUser("padre1@tuli.test", "guardian", "Padre Demo 1");
 const padre2 = await ensureUser("padre2@tuli.test", "guardian", "Padre Demo 2");
 const docente = await ensureUser("docente@tuli.test", "teacher", "Docente Demo");
+const adminUser = await ensureUser("admin@tuli.test", "guardian", "Admin Demo");
 
 must(await admin.from("guardians").upsert([
   { profile_id: padre1, child_id: childA },
   { profile_id: padre2, child_id: childB },
 ]).select(), "vincular tutores");
+must(await admin.from("admins").upsert({ profile_id: adminUser }).select(), "crear admin demo");
 must(await admin.from("teacher_classrooms").upsert({ profile_id: docente, classroom_id: classroomId }).select(), "vincular docente");
 
 // 4. Dispositivos con tokens nuevos (se guarda solo el hash)
@@ -114,6 +116,6 @@ upsertEnv({
 
 console.log("✔ Provisión lista (solo datos simulados).");
 console.log("  Salón: Salón demo · Niños: Alumno A, Alumno B");
-console.log("  Usuarios: padre1@tuli.test (Alumno A), padre2@tuli.test (Alumno B), docente@tuli.test (salón)");
+console.log("  Usuarios: padre1@tuli.test (Alumno A), padre2@tuli.test (Alumno B), docente@tuli.test (salón), admin@tuli.test (admin de solo lectura)");
 console.log("  Dispositivos: tuli-toy-01, tuli-toy-02, tuli-box-01 y los de /demo (tuli-toy-demo, tuli-box-demo)");
 console.log("  Tokens y DEMO_PASSWORD escritos en apps/web/.env.local (revísalo tú; no se imprimen).");

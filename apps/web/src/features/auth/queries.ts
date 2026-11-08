@@ -9,12 +9,15 @@ export async function requireUser() {
   return data.user;
 }
 
-export type ViewerRole = "teacher" | "guardian";
+export type ViewerRole = "admin" | "teacher" | "guardian";
 
-// La vista (docente o padre/tutor) se decide por los datos vinculados, no por el
-// campo `role` del perfil: el rol por sí solo no da acceso a nada (ver migración).
+// La vista (admin, docente o padre/tutor) se decide por los datos vinculados, no por el
+// campo `role` del perfil: el rol por sí solo no da acceso a nada (ver migraciones).
+// El admin es una fila en public.admins que solo service_role puede crear.
 export async function getViewerRole(): Promise<ViewerRole> {
   const supabase = await createClient();
+  const { data: adminRow } = await supabase.from("admins").select("profile_id").maybeSingle();
+  if (adminRow) return "admin";
   const { data } = await supabase
     .from("teacher_classrooms")
     .select("classroom_id")

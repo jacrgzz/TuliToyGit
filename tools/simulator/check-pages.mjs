@@ -38,3 +38,13 @@ show("docente /dashboard", await get(t.cookie, "/dashboard"), 1200);
 show("docente → niño A", await get(t.cookie, `/dashboard/ninos/${kidA}`), 400);
 show("ruta inválida", await get(p1.cookie, "/dashboard/ninos/no-es-uuid"), 200);
 show("evento inválido", await get(p1.cookie, "/dashboard/eventos/abc"), 200);
+
+// ---- Superusuario (admin) ----
+const adm = await session("admin@tuli.test");
+const roomId = (await adm.supabase.from("classrooms").select("id").limit(1).single()).data.id;
+show("ADMIN /dashboard", await get(adm.cookie, "/dashboard"), 3800);
+show("ADMIN /dashboard/salones/<salón>", await get(adm.cookie, `/dashboard/salones/${roomId}`), 700);
+show("ADMIN → niño A", await get(adm.cookie, `/dashboard/ninos/${kidA}`), 300);
+show("ADMIN → evento A", await get(adm.cookie, `/dashboard/eventos/${evA}`), 300);
+show("padre1 → /dashboard/salones (no debe ver nada)", await get(p1.cookie, `/dashboard/salones/${roomId}`), 300);
+show("docente → /dashboard/salones/<su salón>", await get(t.cookie, `/dashboard/salones/${roomId}`), 300);
