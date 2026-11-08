@@ -95,6 +95,23 @@ check(!!log.error || (log.data ?? []).length === 0, "usuarios no ven ingest_log"
 const sneaky = await p1.from("guardians").insert({ profile_id: (await p1.auth.getUser()).data.user!.id, child_id: (await p2.from("children").select("id").single()).data?.id });
 check(!!sneaky.error, "un padre no puede vincularse al hijo de otro");
 
+// ---- Funciones de análisis del docente (security invoker: respetan RLS) ----
+const LP = { p_noise: 75, p_noise_avg: 60, p_light_swing: 500, p_light_high: 1000, p_temp_high: 26, p_hum_high: 60 };
+const kidAId = kidA;
+const liftOwn = (await p1.rpc("child_condition_lift", { p_child: kidAId, p_days: 30, ...LP })).data ?? [];
+check(liftOwn.some((r) => r.events_total > 0), "padre1 obtiene el perfil de sensibilidad de su hijo");
+const liftOther = (await p2.rpc("child_condition_lift", { p_child: kidAId, p_days: 30, ...LP })).data ?? [];
+check(liftOther.length === 6 && liftOther.every((r) => r.events_total === 0 && r.baseline_total === 0), "padre2 NO obtiene el perfil del hijo de padre1 (solo ceros)");
+const curveOther = (await p2.rpc("child_event_curve", { p_child: kidAId, p_days: 30 })).data ?? [];
+check(curveOther.length === 0, "padre2 NO obtiene la curva del hijo de padre1");
+const roomOfA = (await teacher.from("children").select("classroom_id").eq("id", kidAId).single()).data?.classroom_id;
+const profT = (await teacher.rpc("classroom_profiles", { p_classroom: roomOfA, p_days: 30, ...LP, p_min_events: 5, p_min_lift: 1.5 })).data ?? [];
+check(profT.length >= 2, `docente obtiene los perfiles de su salón (${profT.length})`);
+const profP2 = (await p2.rpc("classroom_profiles", { p_classroom: roomOfA, p_days: 30, ...LP, p_min_events: 5, p_min_lift: 1.5 })).data ?? [];
+check(profP2.every((p) => p.display_name !== "Alumno A"), "padre2 no ve el perfil de Alumno A en los perfiles del salón");
+const anonLift = await anon.rpc("child_condition_lift", { p_child: kidAId, p_days: 30, ...LP });
+check(!!anonLift.error || (anonLift.data ?? []).every((r) => r.events_total === 0), "anon no puede usar las funciones de análisis");
+
 // ---- Superusuario (admin): ve todo, pero solo lee ----
 const adminC = await login("admin@tuli.test");
 const aKids = (await adminC.from("children").select("id")).data ?? [];

@@ -6,27 +6,35 @@ import { getChild } from "@/features/children/queries";
 import { LiveRefresh } from "@/features/events/components/LiveRefresh";
 import { EventList } from "@/features/events/components/EventList";
 import { listEventSummaries } from "@/features/events/queries";
-import { PatternsCard } from "@/features/insights/components/PatternsCard";
-import { getChildPatterns } from "@/features/insights/queries";
+import { EventCurveChart } from "@/features/insights/components/EventCurveChart";
+import { PeriodSelector } from "@/features/insights/components/PeriodSelector";
+import { ProfileSummary } from "@/features/insights/components/ProfileSummary";
+import { SensitivityBars } from "@/features/insights/components/SensitivityBars";
+import { getConditionLift, getEventCurve } from "@/features/insights/queries";
 import { ConditionsPanel } from "@/features/readings/components/ConditionsPanel";
 import { getLatestReading } from "@/features/readings/queries";
+import { parsePeriod } from "@/lib/period";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-async function ChildView({ params }: { params: PageProps<"/dashboard/ninos/[id]">["params"] }) {
+type Props = PageProps<"/dashboard/ninos/[id]">;
+
+async function ChildView({ params, searchParams }: { params: Props["params"]; searchParams: Props["searchParams"] }) {
   await requireUser();
-  const { id } = await params;
+  const [{ id }, sp] = await Promise.all([params, searchParams]);
   if (!UUID.test(id)) notFound();
+  const days = parsePeriod(sp.dias);
 
   // Si el usuario no puede ver al niño, RLS devuelve null → 404 (no se revela que existe).
   const child = await getChild(id);
   if (!child) notFound();
 
-  const [role, reading, events, patterns] = await Promise.all([
+  const [role, reading, events, lift, curve] = await Promise.all([
     getViewerRole(),
     getLatestReading(child.classroom_id),
     listEventSummaries(child.id),
-    getChildPatterns(child.id),
+    getConditionLift(child.id, days),
+    getEventCurve(child.id, days),
   ]);
 
   return (
@@ -48,7 +56,25 @@ async function ChildView({ params }: { params: PageProps<"/dashboard/ninos/[id]"
         <ConditionsPanel reading={reading} />
       </section>
 
-      <PatternsCard patterns={patterns} />
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">Perfil de sensibilidad</h2>
+          <PeriodSelector current={days} basePath={`/dashboard/ninos/${child.id}`} />
+        </div>
+        <ProfileSummary rows={lift} days={days} />
+        <div className="rounded-xl border border-border bg-white p-4">
+          <h3 className="mb-3 font-semibold">Qué condiciones acompañan sus momentos</h3>
+          <SensitivityBars rows={lift} />
+        </div>
+        <div className="rounded-xl border border-border bg-white p-4">
+          <h3 className="mb-1 font-semibold">Ruido antes y después de sus momentos</h3>
+          {curve.length > 0 ? (
+            <EventCurveChart points={curve} />
+          ) : (
+            <p className="text-muted">Todavía no hay momentos con lecturas de la caja en este periodo.</p>
+          )}
+        </div>
+      </section>
 
       <section>
         <h2 className="mb-3 text-lg font-semibold">Momentos recientes</h2>
@@ -58,10 +84,10 @@ async function ChildView({ params }: { params: PageProps<"/dashboard/ninos/[id]"
   );
 }
 
-export default function ChildPage(props: PageProps<"/dashboard/ninos/[id]">) {
+export default function ChildPage(props: Props) {
   return (
     <Suspense fallback={<p className="text-muted">Cargando…</p>}>
-      <ChildView params={props.params} />
+      <ChildView params={props.params} searchParams={props.searchParams} />
     </Suspense>
   );
 }

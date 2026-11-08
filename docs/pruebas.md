@@ -53,7 +53,7 @@ Datos de prueba (una vez): en `tools/simulator`, `npm run provision` y `npm run 
 | **Realtime** | `check-realtime`; abrir dos navegadores (tutor y otro tutor) y mandar un evento con el simulador; esperar ~1.5 s tras suscribirse antes de insertar |
 | **El modo demo o la PWA** | `check-demo`; probar el micrófono real y la instalación en un teléfono (sección D); confirmar `DEMO_MODE` apagado en producción |
 | **Dependencias, `next.config` o versión de Next** | Leer la doc en `node_modules/next/dist/docs/`; build limpio; revisar el log de dev; `npm audit` |
-| **Umbrales o patrones** (`lib/thresholds.ts`, `child_patterns`) | Revisar los textos de `PatternsCard` (solo coincidencias, nunca causas); confirmar valores con especialistas (OE1) |
+| **Análisis del docente o umbrales** (`lib/thresholds.ts`, `child_condition_lift`, `child_event_curve`, `classroom_profiles`, `evidence.ts`) | `npm run history -- --days 5` y `npm run check-insights` (el análisis debe encontrar los perfiles simulados: A ruido, B luz); pruebas de `evidence.test.ts` (sin lenguaje clínico); `check-rls` para que un tutor no obtenga el análisis de un niño ajeno; revisar que las frases digan "coincide", nunca "causa"; confirmar umbrales con especialistas (OE1) |
 
 ---
 

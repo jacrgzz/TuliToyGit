@@ -66,7 +66,12 @@ console.log("\n# Tutor (padre1)");
 r = await get(p1.cookie, `/dashboard/ninos/${kidA}`);
 check(r.status === 200 && !hasRenderError(r), "panel de su hijo carga sin errores de render");
 check(r.text.includes("Alumno A") && r.text.includes("Condiciones del salón ahora"), "panel muestra a su hijo y las condiciones");
-check(r.text.includes("Qué se repite antes de los momentos") && r.text.includes("Momentos recientes"), "panel muestra patrones y momentos");
+check(r.text.includes("Perfil de sensibilidad") && r.text.includes("Momentos recientes"), "panel muestra el perfil de sensibilidad y los momentos");
+check(r.text.includes("Qué condiciones acompañan sus momentos") && r.text.includes("Picos de ruido"), "panel muestra las barras de condiciones");
+check(r.text.includes("Ruido antes y después de sus momentos"), "panel muestra la curva antes y después");
+check(r.text.includes("no indican la causa"), "el perfil aclara que son coincidencias, no causas");
+r = await get(p1.cookie, `/dashboard/ninos/${kidA}?dias=7`);
+check(r.status === 200 && !hasRenderError(r) && r.text.includes("Últimos 7 días"), "el selector de periodo (?dias=7) funciona");
 check(r.text.includes("no es un dispositivo médico"), "panel conserva el aviso de que no es dispositivo médico");
 r = await get(p1.cookie, `/dashboard/eventos/${evA}`);
 check(r.status === 200 && !hasRenderError(r) && r.text.includes("Lecturas de la caja"), "detalle de su evento carga con las lecturas");
@@ -82,17 +87,18 @@ check(!r.text.includes("Lecturas de la caja"), "id de evento inválido no muestr
 // ---- Aislamiento entre tutores ----
 console.log("\n# Aislamiento (padre2 intenta ver lo de padre1)");
 r = await get(p2.cookie, `/dashboard/ninos/${kidA}`);
-check(!r.html.includes("Alumno A") && !r.text.includes("Condiciones del salón ahora"), "padre2 no ve el panel del hijo de padre1 (ni en el HTML)");
+check(!r.html.includes("Alumno A") && !r.text.includes("Condiciones del salón ahora") && !r.text.includes("Perfil de sensibilidad"), "padre2 no ve el panel ni el perfil del hijo de padre1 (ni en el HTML)");
 r = await get(p2.cookie, `/dashboard/eventos/${evA}`);
 check(!r.text.includes("Lecturas de la caja") && !r.text.includes("Condiciones en los"), "padre2 no ve el evento de padre1");
 r = await get(p2.cookie, `/dashboard/ninos/${kidB}`);
-check(r.status === 200 && r.text.includes("Alumno B") && r.text.includes("Todavía no hay momentos registrados"), "padre2 ve a su hijo (sin momentos)");
+check(r.status === 200 && !hasRenderError(r) && r.text.includes("Alumno B") && r.text.includes("Perfil de sensibilidad"), "padre2 ve el panel y el perfil de su propio hijo");
 
 // ---- Docente ----
 console.log("\n# Docente");
 r = await get(teacher.cookie, "/dashboard");
 check(r.status === 200 && !hasRenderError(r), "panel del salón carga sin errores de render");
 check(r.text.includes("Niños del salón") && r.text.includes("Alumno A") && r.text.includes("Alumno B"), "docente ve a los niños de su salón");
+check(r.text.includes("Perfiles del salón") && r.text.includes("Condición que más coincide"), "docente ve la tabla de perfiles del salón");
 r = await get(teacher.cookie, `/dashboard/salones/${roomId}`);
 check(r.text.includes("Niños del salón") && !hasRenderError(r), "docente abre la vista de su salón");
 r = await get(teacher.cookie, `/dashboard/ninos/${kidA}`);

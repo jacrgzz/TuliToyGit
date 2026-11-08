@@ -12,11 +12,29 @@ export const THRESHOLDS = {
 // Parámetros de los patrones (child_patterns en SQL). Se pasan a la función para
 // que los umbrales vivan solo aquí.
 export const PATTERNS = {
-  noiseHigh: THRESHOLDS.noise.high, // dB que cuenta como pico alto
-  lightSwing: 500, // variación de lux dentro de la ventana que cuenta como brusca
-  windowMinutes: 5, // ventana previa al evento (fija en la vista event_context)
-  minEventsForPattern: 3,
-  days: 30,
+  noiseHigh: THRESHOLDS.noise.high, // pico de ruido (dB) — ver justificación en docs/analisis-docente.md
+  noiseSustained: THRESHOLDS.noise.attention, // ruido sostenido: promedio en la ventana (dB)
+  lightSwing: 500, // cambio brusco de luz: máx. − mín. dentro de la ventana (lux)
+  lightHigh: THRESHOLDS.light.attention, // luz muy intensa (lux)
+  tempHigh: THRESHOLDS.temp.attentionHigh, // calor (°C, promedio)
+  humHigh: THRESHOLDS.humidity.attentionHigh, // humedad alta (%, promedio)
+  windowMinutes: 5, // ventana previa al evento (fija en las vistas event_context y event_summary)
+  minEvents: 5, // menos momentos con lecturas = evidencia insuficiente
+  strongEvents: 10, // momentos necesarios para evidencia alta
+  minLift: 1.5, // razón mínima para considerar una coincidencia notable
+  minBaselineWindows: 30, // ventanas mínimas en la línea base del salón
+  curve: { beforeMin: 10, afterMin: 5, bucketS: 30 },
+  days: 30, // periodo por defecto
+} as const;
+
+// Parámetros de las funciones SQL de análisis (child_condition_lift, classroom_profiles).
+export const LIFT_PARAMS = {
+  p_noise: PATTERNS.noiseHigh,
+  p_noise_avg: PATTERNS.noiseSustained,
+  p_light_swing: PATTERNS.lightSwing,
+  p_light_high: PATTERNS.lightHigh,
+  p_temp_high: PATTERNS.tempHigh,
+  p_hum_high: PATTERNS.humHigh,
 } as const;
 
 export function noiseLevel(db: number): Level {

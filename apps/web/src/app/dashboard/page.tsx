@@ -6,10 +6,12 @@ import { ChildActivityList } from "@/features/children/components/ChildActivityL
 import { listMyChildren } from "@/features/children/queries";
 import { LiveRefresh } from "@/features/events/components/LiveRefresh";
 import { countRecentEventsByChild } from "@/features/events/queries";
+import { parsePeriod } from "@/lib/period";
 import { ClassroomView } from "./_components/ClassroomView";
 
-async function DashboardHome() {
+async function DashboardHome({ searchParams }: { searchParams: PageProps<"/dashboard">["searchParams"] }) {
   await requireUser();
+  const days = parsePeriod((await searchParams).dias);
   const role = await getViewerRole();
 
   // Superusuario de solo lectura: todo el sistema en un panel.
@@ -51,13 +53,20 @@ async function DashboardHome() {
   }
 
   // Docente: su salón (condiciones y actividad de cada niño).
-  return <ClassroomView classroomId={children[0].classroom_id} title="Panel del salón" />;
+  return (
+    <ClassroomView
+      classroomId={children[0].classroom_id}
+      title="Panel del salón"
+      days={days}
+      basePath="/dashboard"
+    />
+  );
 }
 
-export default function DashboardPage() {
+export default function DashboardPage(props: PageProps<"/dashboard">) {
   return (
     <Suspense fallback={<p className="text-muted">Cargando…</p>}>
-      <DashboardHome />
+      <DashboardHome searchParams={props.searchParams} />
     </Suspense>
   );
 }

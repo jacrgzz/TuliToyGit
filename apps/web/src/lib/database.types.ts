@@ -433,6 +433,49 @@ export type Database = {
     Functions: {
       can_view_child: { Args: { p_child: string }; Returns: boolean }
       can_view_classroom: { Args: { p_classroom: string }; Returns: boolean }
+      child_condition_lift: {
+        Args: {
+          p_child: string
+          p_days?: number
+          p_hum_high?: number
+          p_light_high?: number
+          p_light_swing?: number
+          p_noise?: number
+          p_noise_avg?: number
+          p_temp_high?: number
+        }
+        Returns: {
+          baseline_pct: number
+          baseline_total: number
+          baseline_with: number
+          condition: string
+          event_pct: number
+          events_total: number
+          events_with: number
+          lift: number
+          wilson_high: number
+          wilson_low: number
+        }[]
+      }
+      child_event_curve: {
+        Args: {
+          p_after_min?: number
+          p_before_min?: number
+          p_bucket_s?: number
+          p_child: string
+          p_days?: number
+        }
+        Returns: {
+          baseline_p25: number
+          baseline_p50: number
+          baseline_p75: number
+          events: number
+          light_avg: number
+          noise_avg: number
+          noise_peak: number
+          offset_s: number
+        }[]
+      }
       child_patterns: {
         Args: {
           p_child: string
@@ -454,12 +497,42 @@ export type Database = {
           total_events: number
         }[]
       }
+      classroom_profiles: {
+        Args: {
+          p_classroom: string
+          p_days?: number
+          p_hum_high?: number
+          p_light_high?: number
+          p_light_swing?: number
+          p_min_events?: number
+          p_min_lift?: number
+          p_noise?: number
+          p_noise_avg?: number
+          p_temp_high?: number
+        }
+        Returns: {
+          child_id: string
+          display_name: string
+          events_last7: number
+          events_period: number
+          events_prev7: number
+          top_baseline_pct: number
+          top_condition: string
+          top_event_pct: number
+          top_events_total: number
+          top_events_with: number
+          top_lift: number
+          top_wilson_low: number
+        }[]
+      }
       is_admin: { Args: never; Returns: boolean }
       is_guardian_of: { Args: { p_child: string }; Returns: boolean }
       is_teacher_of_classroom: {
         Args: { p_classroom: string }
         Returns: boolean
       }
+      visible_child_ids: { Args: never; Returns: string[] }
+      visible_classroom_ids: { Args: never; Returns: string[] }
     }
     Enums: {
       [_ in never]: never

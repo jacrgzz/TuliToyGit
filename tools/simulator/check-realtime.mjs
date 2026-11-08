@@ -54,7 +54,13 @@ check(
   (await post(process.env.BOX_DEVICE_TOKEN, { type: "reading", device_id: "tuli-box-01", ts: now, ts_source: "ntp", seq, window_s: 10, noise_avg: 52, noise_peak: 61, light_lux: 640, temp_c: 24, humidity_pct: 48 })) === 201,
   "la lectura de la caja se acepta (201)",
 );
-await new Promise((r) => setTimeout(r, 4000));
+// Espera hasta 15 s a que lleguen los mensajes esperados (con el servidor recién arrancado
+// Realtime puede tardar más); luego 2 s extra para confirmar que a padre2 NO le llega lo ajeno.
+const expected = [`toy_events:${seq}`, `sensor_readings:${seq}`];
+for (let waited = 0; waited < 15000 && !expected.every((e) => got1.includes(e)); waited += 250) {
+  await new Promise((r) => setTimeout(r, 250));
+}
+await new Promise((r) => setTimeout(r, 2000));
 
 check(got1.includes(`toy_events:${seq}`), "padre1 recibe por Realtime la pulsación de su hijo");
 check(got1.includes(`sensor_readings:${seq}`), "padre1 recibe por Realtime la lectura de su salón");

@@ -12,6 +12,13 @@
   --calm: #2f9e5b;
   --attention: #d9a100;
   --high: #d63b2f;
+  /* Gráficas (skill dataviz): par categórico validado con validate_palette.js en superficie blanca
+     (CVD ΔE 24.7, visión normal ΔE 33.6, contraste ≥ 3:1). No usar los colores del semáforo
+     (reservados para estados) ni el naranja-rojo de la marca, que se confunde con "alto". */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --chart-reference: #9a938d; /* línea base y rango habitual: gris recesivo */
+  --chart-grid: #eee8e3;
 }
 
 @theme inline {
@@ -24,6 +31,10 @@
   --color-calm: var(--calm);
   --color-attention: var(--attention);
   --color-high: var(--high);
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
+  --color-chart-reference: var(--chart-reference);
+  --color-chart-grid: var(--chart-grid);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
