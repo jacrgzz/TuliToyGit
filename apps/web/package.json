@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "verify": "node ../../tools/verify/verify.mjs",
     "verify:live": "node ../../tools/verify/verify.mjs --live",
     "verify:all": "node ../../tools/verify/verify.mjs --all"
