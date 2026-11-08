@@ -16,6 +16,8 @@ Catálogo de todas las pruebas que hay (y las que faltan). Cada una está marcad
 | `npm run verify:live` | Ingesta, RLS, páginas por rol, Realtime, demo, migraciones y lint de la BD | Supabase y datos de prueba (ver abajo) |
 | `npm run verify:all` | Los dos anteriores; levanta y detiene `npm run dev` solo | Igual |
 
+**En GitHub:** `.github/workflows/verify.yml` corre `npm run verify` (solo la parte estática) en cada PR y en cada push a `main`. No usa ningún secreto de Supabase: usa valores de relleno. Las pruebas contra el proyecto real (`verify:live`) **siguen siendo locales** y obligatorias antes de dar algo por terminado, porque correrlas en GitHub exigiría guardar la `service_role` allí.
+
 Datos de prueba (una vez): en `tools/simulator`, `npm run provision` y `npm run simulate -- --backfill 60 --no-live`. Cada prueba `check-*` también se corre sola con `npm run check-<nombre>` desde `tools/simulator`.
 
 ---
@@ -142,5 +144,5 @@ Cuando exista el firmware de los ESP32, cada prueba se compara contra lo que env
 | Login con Google real | Solo manual (D7); no se puede automatizar sin exponer una cuenta |
 | Micrófono e instalación de la PWA | Solo manual (D8, D9) |
 | Accesibilidad automatizada | axe o Lighthouse en CI |
-| Integración continua | GitHub Actions que corra `npm run verify` en cada PR (la parte estática no necesita secretos) |
+| Integración continua de las pruebas contra Supabase | La parte estática ya corre en GitHub; `verify:live` en GitHub requeriría un proyecto de Supabase aparte para CI y guardar sus claves como secretos del repositorio |
 | Carga y límite de peticiones | Prueba de estrés después de implementar el 429 |
