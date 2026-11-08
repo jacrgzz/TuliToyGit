@@ -11,7 +11,8 @@
     "link": "tsx --env-file=../../apps/web/.env.local link-user.ts",
     "check-pages": "node --env-file=../../apps/web/.env.local check-pages.mjs",
     "check-realtime": "node --env-file=../../apps/web/.env.local check-realtime.mjs",
-    "check-demo": "node --env-file=../../apps/web/.env.local check-demo.mjs"
+    "check-demo": "node --env-file=../../apps/web/.env.local check-demo.mjs",
+    "check-ingest": "node --env-file=../../apps/web/.env.local check-ingest.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0"

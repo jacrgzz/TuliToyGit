@@ -1,33 +1,65 @@
-// Verifica que Realtime respeta RLS: el tutor recibe lo de su hijo y otro tutor no.
-// Requiere npm run dev corriendo y datos provisionados. Corre: npm run check-realtime
+// Verifica que Realtime respeta RLS: el tutor recibe lo de su hijo y otro tutor NO.
+// Requiere: npm run dev corriendo y datos provisionados. Corre: npm run check-realtime
 import { createClient } from "@supabase/supabase-js";
 
-const mk = async (email) => {
+const base = process.env.APP_URL ?? "http://localhost:3000";
+let failures = 0;
+const check = (ok, label) => {
+  console.log(`${ok ? "✔" : "✘"} ${label}`);
+  if (!ok) failures++;
+};
+
+async function mk(email) {
   const c = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, { auth: { persistSession: false } });
   const { error } = await c.auth.signInWithPassword({ email, password: process.env.DEMO_PASSWORD });
-  if (error) throw new Error(email + ": " + error.message);
+  if (error) {
+    console.error(`✘ no se pudo iniciar sesión como ${email}: ${error.message}`);
+    process.exit(1);
+  }
   return c;
-};
-const listen = (client, name, got) =>
-  new Promise((resolve, reject) => {
-    client.channel(`rt-${name}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "toy_events" }, (p) => got.push(`${name}: toy_events seq=${p.new.seq}`))
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "sensor_readings" }, (p) => got.push(`${name}: sensor_readings seq=${p.new.seq}`))
-      .subscribe((s, err) => { if (s === "SUBSCRIBED") resolve(); if (s === "CHANNEL_ERROR" || s === "TIMED_OUT") reject(new Error(`${name}: ${s} ${err ?? ""}`)); });
-  });
+}
 
-const got = [];
+function listen(client, name, got) {
+  return new Promise((resolve, reject) => {
+    client
+      .channel(`rt-${name}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "toy_events" }, (p) => got.push(`toy_events:${p.new.seq}`))
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "sensor_readings" }, (p) => got.push(`sensor_readings:${p.new.seq}`))
+      .subscribe((s, err) => {
+        if (s === "SUBSCRIBED") resolve();
+        if (s === "CHANNEL_ERROR" || s === "TIMED_OUT") reject(new Error(`${name}: ${s} ${err ?? ""}`));
+      });
+  });
+}
+
+const got1 = [];
+const got2 = [];
 const p1 = await mk("padre1@tuli.test");
 const p2 = await mk("padre2@tuli.test");
-await Promise.all([listen(p1, "padre1", got), listen(p2, "padre2", got)]);
+await Promise.all([listen(p1, "padre1", got1), listen(p2, "padre2", got2)]);
+// Realtime tarda un instante en registrar la suscripción después de decir SUBSCRIBED.
 await new Promise((r) => setTimeout(r, 1500));
-console.log("ambos suscritos");
 
 const seq = Date.now();
-const post = (token, body) => fetch("http://localhost:3000/api/ingest", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(body) }).then((r) => r.status);
 const now = new Date().toISOString();
-console.log("press (toy-01, hijo de padre1) →", await post(process.env.TOY_DEVICE_TOKEN, { type: "press", device_id: "tuli-toy-01", ts: now, ts_source: "ntp", seq }));
-console.log("reading (caja del salón) →", await post(process.env.BOX_DEVICE_TOKEN, { type: "reading", device_id: "tuli-box-01", ts: now, ts_source: "ntp", seq, window_s: 10, noise_avg: 52, noise_peak: 61, light_lux: 640, temp_c: 24, humidity_pct: 48 }));
+const post = (token, body) =>
+  fetch(`${base}/api/ingest`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+  }).then((r) => r.status);
+
+check((await post(process.env.TOY_DEVICE_TOKEN, { type: "press", device_id: "tuli-toy-01", ts: now, ts_source: "ntp", seq })) === 201, "la pulsación del juguete de padre1 se acepta (201)");
+check(
+  (await post(process.env.BOX_DEVICE_TOKEN, { type: "reading", device_id: "tuli-box-01", ts: now, ts_source: "ntp", seq, window_s: 10, noise_avg: 52, noise_peak: 61, light_lux: 640, temp_c: 24, humidity_pct: 48 })) === 201,
+  "la lectura de la caja se acepta (201)",
+);
 await new Promise((r) => setTimeout(r, 4000));
-console.log("\nrecibido por Realtime:\n" + (got.sort().join("\n") || "(nada)"));
-process.exit(0);
+
+check(got1.includes(`toy_events:${seq}`), "padre1 recibe por Realtime la pulsación de su hijo");
+check(got1.includes(`sensor_readings:${seq}`), "padre1 recibe por Realtime la lectura de su salón");
+check(!got2.includes(`toy_events:${seq}`), "padre2 NO recibe la pulsación del hijo de padre1");
+check(got2.includes(`sensor_readings:${seq}`), "padre2 sí recibe la lectura del salón compartido (por diseño)");
+
+console.log(failures === 0 ? "\n✔ Realtime respeta RLS" : `\n✘ ${failures} verificación(es) fallaron`);
+process.exit(failures === 0 ? 0 : 1);

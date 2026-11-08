@@ -40,6 +40,14 @@ for (const table of ["children", "toy_events", "sensor_readings", "devices", "pr
   check(!data || data.length === 0, `anon no ve ${table}`);
 }
 
+// Anónimo tampoco puede escribir (las políticas anon de insert del prototipo viejo no existen)
+const anonInsEvent = await anon.from("toy_events").insert({ device_id: "x", child_id: "00000000-0000-0000-0000-000000000000", occurred_at: new Date().toISOString(), ts_source: "ntp", seq: 1 });
+check(!!anonInsEvent.error, "anon no puede insertar en toy_events");
+const anonInsReading = await anon.from("sensor_readings").insert({ device_id: "x", classroom_id: "00000000-0000-0000-0000-000000000000", measured_at: new Date().toISOString(), ts_source: "ntp", seq: 1 });
+check(!!anonInsReading.error, "anon no puede insertar en sensor_readings");
+const anonInsRoom = await anon.from("classrooms").insert({ name: "hack" });
+check(!!anonInsRoom.error, "anon no puede insertar en classrooms");
+
 // Padre 1 solo ve a su hijo
 const kids1 = (await p1.from("children").select("display_name")).data ?? [];
 check(kids1.length === 1 && kids1[0].display_name === "Alumno A", "padre1 ve solo a Alumno A");

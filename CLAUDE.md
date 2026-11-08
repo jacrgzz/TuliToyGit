@@ -59,8 +59,6 @@ Reglas:
 
 Ingesta: `api/ingest/route.ts` es delgada y delega a `features/ingest/handle.ts` (verifica token → valida con zod → inserta → escribe en `ingest_log`). `features/ingest/schemas.ts` es la **única definición del contrato en código**; el simulador y las pruebas la importan. Tipos de BD generados en `src/lib/database.types.ts`.
 
-Pruebas: solo `vitest` para el contrato y los umbrales, y pruebas de políticas RLS. Sin pruebas de interfaz esta semana.
-
 Comandos (ejecutar dentro de `apps/web`): `npm run dev` (http://localhost:3000), `npm run build`, `npm run lint`, `npm run typecheck`, `npm test` (vitest).
 
 Simulador y datos de demo (ejecutar dentro de `tools/simulator`; carga `apps/web/.env.local`): `npm run provision` (crea salón, niños, 3 usuarios `padre1@tuli.test`, `padre2@tuli.test`, `docente@tuli.test` y dispositivos con tokens nuevos; escribe tokens y `DEMO_PASSWORD` en `.env.local` sin imprimirlos), `npm run simulate` (`-- --backfill 120` para historia, `-- --interval 5` para ritmo), `npm run check-rls` (verifica las políticas con usuarios demo), `npm run link -- correo@gmail.com guardian|teacher` (vincula una cuenta real a los datos demo; ver `docs/google-login.md`).
@@ -86,6 +84,12 @@ Skills del proyecto: `nueva-migracion`, `cambio-contrato` (cualquier cambio a lo
 **Next.js 16 (versión nueva, no la que conoces):** antes de escribir código de Next, lee la guía relevante en `apps/web/node_modules/next/dist/docs/` (ver `apps/web/AGENTS.md`). Hay "Cache Components" y "Partial Prefetching" activos; `middleware` ahora puede llamarse `proxy`. Verifica en la doc en vez de asumir.
 
 Entorno: `apps/web/.env.local` ya tiene `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` (clave publishable del proyecto nuevo). `SUPABASE_SERVICE_ROLE_KEY` la pega Lucy a mano; Claude no debe leer ni pedir ese valor. Proyecto Supabase: `ngtcqkwjnacazgzjeikl`.
+
+## Pruebas obligatorias (puerta de calidad)
+
+**Ninguna funcionalidad se da por terminada sin `npm run verify:all` en verde** (desde `apps/web`; usa la skill `verificar-feature`). `npm run verify` = estático (secretos, typecheck, lint, pruebas unitarias, build, secretos en el bundle); `npm run verify:live` = contra Supabase (ingesta, RLS, páginas por rol, Realtime, demo, migraciones sincronizadas, lint de la BD); `verify:all` = ambos y levanta `npm run dev` solo. Primera vez: `npm run provision` y `npm run simulate -- --backfill 60 --no-live` en `tools/simulator`. Catálogo completo, pruebas por tipo de cambio, lista manual y huecos conocidos: `docs/pruebas.md`.
+
+Reglas: (1) una funcionalidad nueva **debe traer su prueba automática** (esquema → `check-rls.ts`; contrato → `schemas.test.ts` y `check-ingest.mjs`; página → `check-pages.mjs`); (2) si algo falla se arregla y se vuelve a correr, no se explica; (3) al cerrar, decir qué se corrió y qué no; (4) no leer ni imprimir `.env*` (los scripts leen sus valores sin mostrarlos). Pruebas unitarias con `vitest` para el contrato y la hora; el resto son scripts `check-*` en `tools/simulator` y `tools/verify`.
 
 ## Modelo de datos (resumen; detalle en `docs/contrato-datos.md`)
 
