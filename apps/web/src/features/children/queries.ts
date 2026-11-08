@@ -10,3 +10,14 @@ export async function listMyChildren() {
   if (error) throw new Error(`No se pudieron cargar los niños: ${error.message}`);
   return data;
 }
+
+export async function getChild(id: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("children")
+    .select("id, display_name, classroom_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(`No se pudo cargar el niño: ${error.message}`);
+  return data;
+}

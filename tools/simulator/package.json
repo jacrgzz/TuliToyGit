@@ -8,7 +8,9 @@
     "provision": "tsx --env-file=../../apps/web/.env.local provision.ts",
     "simulate": "tsx --env-file=../../apps/web/.env.local simulate.ts",
     "check-rls": "tsx --env-file=../../apps/web/.env.local check-rls.ts",
-    "link": "tsx --env-file=../../apps/web/.env.local link-user.ts"
+    "link": "tsx --env-file=../../apps/web/.env.local link-user.ts",
+    "check-pages": "node --env-file=../../apps/web/.env.local check-pages.mjs",
+    "check-realtime": "node --env-file=../../apps/web/.env.local check-realtime.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0"

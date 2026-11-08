@@ -379,10 +379,55 @@ export type Database = {
           },
         ]
       }
+      event_summary: {
+        Row: {
+          child_id: string | null
+          event_id: number | null
+          humidity_avg: number | null
+          light_max: number | null
+          light_min: number | null
+          noise_avg: number | null
+          noise_peak_max: number | null
+          occurred_at: string | null
+          readings_count: number | null
+          temp_avg: number | null
+          ts_source: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "toy_events_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       can_view_child: { Args: { p_child: string }; Returns: boolean }
       can_view_classroom: { Args: { p_classroom: string }; Returns: boolean }
+      child_patterns: {
+        Args: {
+          p_child: string
+          p_days?: number
+          p_light_swing?: number
+          p_noise?: number
+        }
+        Returns: {
+          avg_humidity_before: number
+          avg_noise_before: number
+          avg_peak_before: number
+          avg_temp_before: number
+          baseline_noise_avg: number
+          baseline_noise_high_pct: number
+          baseline_readings: number
+          events_with_context: number
+          light_swing_events: number
+          noise_high_events: number
+          total_events: number
+        }[]
+      }
       is_guardian_of: { Args: { p_child: string }; Returns: boolean }
       is_teacher_of_classroom: {
         Args: { p_classroom: string }
