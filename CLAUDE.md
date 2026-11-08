@@ -104,7 +104,8 @@ Los momentos de ansiedad de un niño son datos personales sensibles (LFPDPPP, M�
 
 ## Flujo de trabajo
 
-- Esta semana: `main` sin aprobación obligatoria; PRs o commits pequeños y frecuentes, referenciando issue cuando exista (`closes #N`).
+- **Claude hace todos los commits y PRs** (Lucy lo delegó el 8 nov): una rama por tarea o día (`dia2-ingesta`), commits pequeños en español, PR a `main` con resumen y qué se verificó. Antes de cada commit, revisar que no se cuelen `.env*` ni claves. No hacer `push --force`.
+- Esta semana: `main` sin aprobación obligatoria; commits pequeños y frecuentes, referenciando issue cuando exista (`closes #N`).
 - Commits en español, descriptivos. Squash and merge.
 - Una skill o plan por tarea grande: empezar cada día en modo plan, leer `docs/plan-semana.md` y `docs/contrato-datos.md`.
 - Cada cambio de esquema = una migración nueva en `supabase/migrations` (skill `nueva-migracion`), con RLS y prueba de política.
