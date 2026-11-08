@@ -50,7 +50,8 @@ Lectura:
 ```json
 {"type":"reading","device_id":"tuli-box-01","ts":"2026-11-09T10:23:00.000Z","ts_source":"ntp","seq":5531,"window_s":10,"noise_avg":54.2,"noise_peak":71.8,"light_lux":680,"temp_c":24.1,"humidity_pct":48.0}
 ```
-Respuestas: `201` ok, `400` validación, `401` token inválido, `409` seq duplicado (descartar), `429` demasiadas peticiones.
+Respuestas: `201` ok, `400` validación (el cuerpo lista qué campo falló; el esquema es estricto: un campo desconocido da 400), `401` token ausente/inválido o `device_id` distinto al del token, `409` seq duplicado (descartar), `500` error del servidor. El `429` aún no está implementado. Cada petición queda en la tabla `ingest_log`. Definición en código: `apps/web/src/features/ingest/schemas.ts`.
+Reglas de hora: sin `ts` → hora de llegada (`server`); `ts_source: unsynced` o `ts` a más de 2 min en el futuro o más de 7 días atrás → hora de llegada marcada `unsynced`; `ts` válido (incluso de hace horas, cola offline) se respeta.
 `(device_id, seq)` es único. Si `ts_source` es `unsynced`, el servidor usa `received_at` y la UI marca "hora aproximada".
 
 ## 4. Sincronización de hora (dependencia crítica)

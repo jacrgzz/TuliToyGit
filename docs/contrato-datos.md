@@ -61,7 +61,13 @@ Nota: con micrófono analógico (MAX4466) el valor es un nivel relativo calibrad
 
 ### Respuesta
 
-`201 {"ok":true}` · `400` validación (zod) · `401` token inválido · `409` `seq` duplicado (idempotente: el cliente puede descartar) · `429` demasiadas peticiones.
+`201 {"ok":true}` · `400 {"ok":false,"error":"invalid","issues":[...]}` validación (zod; `issues` dice qué campo falló) · `401` token ausente o inválido, o `device_id` del cuerpo distinto al del token · `409 {"ok":true,"duplicate":true}` `seq` repetido (idempotente: el cliente puede descartar) · `500` error del servidor.
+
+El esquema es **estricto**: un campo desconocido (por ejemplo `temperature` en lugar de `temp_c`) da `400`. Una pulsación solo la acepta un dispositivo `toy` y una lectura solo un dispositivo `box`. El cuerpo máximo es 4096 bytes. El `429` (límite de peticiones) **no está implementado** todavía.
+
+Cada petición queda registrada en la tabla `ingest_log` (aceptada o rechazada, con el motivo); solo es legible con `service_role`.
+
+La definición en código está en `apps/web/src/features/ingest/schemas.ts`.
 
 ## Tablas (resumen; las migraciones son la referencia final)
 
@@ -83,9 +89,23 @@ Nota: con micrófono analógico (MAX4466) el valor es un nivel relativo calibrad
 
 ## Sincronización de hora
 
-Ambos dispositivos usan NTP. Si falla, `ts_source = unsynced` y el servidor usa `received_at`; esos eventos se marcan en la UI como "hora aproximada". Tolerancia de correlación esperada: ±2 s.
+Ambos dispositivos usan NTP. Reglas que aplica el servidor (`features/ingest/time.ts`):
+
+| Situación | Hora guardada | `ts_source` guardado |
+| --- | --- | --- |
+| Sin `ts` | hora de llegada | `server` |
+| `ts_source: unsynced` | hora de llegada | `unsynced` |
+| `ts` más de 2 min en el futuro, o de hace más de 7 días | hora de llegada | `unsynced` |
+| `ts` válido (incluye colas offline y datos de hace horas) | `ts` | el declarado, o `ntp` si no declaró |
+
+La UI marca como "hora aproximada" lo que no sea `ntp`. Tolerancia de correlación esperada: ±2 s.
+
+## Contexto de eventos
+
+La vista `event_context` une cada pulsación con las lecturas de la caja del salón del niño de los **5 minutos previos** (fijo en la vista; si se necesita otra ventana se agrega una función RPC). Respeta RLS (`security_invoker`).
 
 ## Pendientes
 
 - Validar con Alex si el firmware real enviará promedio y pico (se asume que sí).
 - Confirmar ventana de correlación definitiva (5 min por defecto).
+- Límite de peticiones (429) y rotación/emisión de tokens desde la UI.

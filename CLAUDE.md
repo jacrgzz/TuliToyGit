@@ -61,7 +61,9 @@ Ingesta: `api/ingest/route.ts` es delgada y delega a `features/ingest/handle.ts`
 
 Pruebas: solo `vitest` para el contrato y los umbrales, y pruebas de políticas RLS. Sin pruebas de interfaz esta semana.
 
-Comandos (ejecutar dentro de `apps/web`): `npm run dev` (http://localhost:3000), `npm run build`, `npm run lint`, `npm run typecheck`, `npm test` (vitest). Pendiente de crear: `npm run simulate`.
+Comandos (ejecutar dentro de `apps/web`): `npm run dev` (http://localhost:3000), `npm run build`, `npm run lint`, `npm run typecheck`, `npm test` (vitest).
+
+Simulador y datos de demo (ejecutar dentro de `tools/simulator`; carga `apps/web/.env.local`): `npm run provision` (crea salón, niños, 3 usuarios `padre1@tuli.test`, `padre2@tuli.test`, `docente@tuli.test` y dispositivos con tokens nuevos; escribe tokens y `DEMO_PASSWORD` en `.env.local` sin imprimirlos), `npm run simulate` (`-- --backfill 120` para historia, `-- --interval 5` para ritmo), `npm run check-rls` (verifica las políticas con usuarios demo). Requiere `SUPABASE_SERVICE_ROLE_KEY` y `npm run dev` corriendo. No leas ni imprimas esos valores de `.env.local`.
 
 Supabase (ejecutar desde la **raíz** del repo, CLI v3). En v3 los comandos apuntan por defecto a una BD **local en Docker** (no la usamos); para el proyecto real **siempre agrega `--remote`**: `npx supabase migration new <nombre>`, `npx supabase migration list --remote`, `npx supabase db push --remote`, `npx supabase gen types --lang=typescript --remote > apps/web/src/lib/database.types.ts`. El proyecto ya está enlazado (`ngtcqkwjnacazgzjeikl`, nombre `tulitoy`).
 
