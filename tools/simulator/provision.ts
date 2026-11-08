@@ -100,6 +100,9 @@ must(await admin.from("devices").upsert([
   { device_id: "tuli-toy-01", kind: "toy", child_id: childA, token_hash: sha256(tokens.toy1) },
   { device_id: "tuli-toy-02", kind: "toy", child_id: childB, token_hash: sha256(tokens.toy2) },
   { device_id: "tuli-box-01", kind: "box", classroom_id: classroomId, token_hash: sha256(tokens.box) },
+  // Dispositivos de /demo (teléfono): se usan por server actions, el token nunca se necesita ni se guarda.
+  { device_id: "tuli-toy-demo", kind: "toy", child_id: childA, token_hash: sha256(newToken()) },
+  { device_id: "tuli-box-demo", kind: "box", classroom_id: classroomId, token_hash: sha256(newToken()) },
 ], { onConflict: "device_id" }).select(), "crear dispositivos");
 
 upsertEnv({
@@ -112,5 +115,5 @@ upsertEnv({
 console.log("✔ Provisión lista (solo datos simulados).");
 console.log("  Salón: Salón demo · Niños: Alumno A, Alumno B");
 console.log("  Usuarios: padre1@tuli.test (Alumno A), padre2@tuli.test (Alumno B), docente@tuli.test (salón)");
-console.log("  Dispositivos: tuli-toy-01, tuli-toy-02, tuli-box-01");
+console.log("  Dispositivos: tuli-toy-01, tuli-toy-02, tuli-box-01 y los de /demo (tuli-toy-demo, tuli-box-demo)");
 console.log("  Tokens y DEMO_PASSWORD escritos en apps/web/.env.local (revísalo tú; no se imprimen).");

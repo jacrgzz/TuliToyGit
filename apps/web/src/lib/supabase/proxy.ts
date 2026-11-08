@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Refresca la sesión de Supabase en cada petición y protege /dashboard.
+// Refresca la sesión de Supabase en cada petición y protege /dashboard y /demo.
 // Lo usa src/proxy.ts. La autorización real de los datos sigue siendo RLS.
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -34,7 +34,8 @@ export async function updateSession(request: NextRequest) {
     return redirect;
   };
 
-  if (!signedIn && path.startsWith("/dashboard")) return redirectTo("/login");
+  const protectedPath = path.startsWith("/dashboard") || path.startsWith("/demo");
+  if (!signedIn && protectedPath) return redirectTo("/login");
   if (signedIn && path === "/login") return redirectTo("/dashboard");
 
   return response;

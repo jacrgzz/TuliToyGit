@@ -25,3 +25,17 @@ Juguete: ESP32-C3 SuperMini 80-120, LiPo + TP4056 + botón 120-200. Caja: ESP32 
 - Mucho alcance para una persona: si el día 4 va tarde, recortar la vista de docente a lista simple.
 - Dependencia de colores exactos de la marca: usar `#DB4A2B` y confirmar con Jac.
 - `/demo` con micrófono del navegador requiere HTTPS (Vercel lo da).
+
+## Estado al 8 nov 2026 (noche)
+
+| Día | Estado |
+| --- | --- |
+| 1 Repo, Next.js, Supabase | Hecho |
+| 2 Esquema con RLS, `/api/ingest`, simulador | Hecho y verificado contra Supabase |
+| 3 Landing, login (Google), dashboard protegido | Hecho; **Google falta activarlo** (`docs/google-login.md`) |
+| 4 Dashboard del tutor (vivo, historial, detalle) | Hecho y verificado (HTML + Realtime con RLS) |
+| 5 Vista docente y patrones | Hecho y verificado |
+| 6 PWA instalable y `/demo` | Hecho; sin service worker a propósito |
+| 7 Despliegue en Vercel, rediseño UI/UX, pruebas con hardware real | Pendiente (Vercel requiere la cuenta de Lucy) |
+
+Pendiente conocido: ver el aspecto con sesión iniciada en el navegador, activar Google, desplegar, quitar el formulario de cuentas demo, flujo de invitación en la app, validar umbrales con especialistas.

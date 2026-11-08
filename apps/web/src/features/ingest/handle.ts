@@ -2,17 +2,12 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ingestMessage, MAX_BODY_BYTES } from "./schemas";
-import { resolveTimestamp } from "./time";
+import { storeMessage } from "./store";
 
 // Flujo (docs/arquitectura.md): verifica token → valida con zod → inserta → ingest_log.
-// Es el ÚNICO lugar que usa el cliente admin (service_role).
+// Con store.ts y demo-actions.ts es de los pocos lugares que usan el cliente admin (service_role).
 
-type Outcome =
-  | "ok"
-  | "invalid"
-  | "unauthorized"
-  | "duplicate"
-  | "error";
+type Outcome = "ok" | "invalid" | "unauthorized" | "duplicate" | "error";
 
 type LogEntry = {
   device_id: string | null;
@@ -127,75 +122,30 @@ export async function handleIngest(request: Request): Promise<Response> {
       );
     }
 
-    const receivedAt = new Date();
-    const { at, source } = resolveTimestamp(msg.ts, msg.ts_source, receivedAt);
-
-    // 4. Inserción según el tipo
-    let insertError: { code?: string; message: string } | null = null;
-
-    if (msg.type === "press") {
-      if (device.kind !== "toy" || !device.child_id) {
+    // 4. Inserción
+    const result = await storeMessage(admin, device, msg, new Date());
+    switch (result.kind) {
+      case "wrong_device":
         return finish(
-          { device_id: device.device_id, type: msg.type, status: 400, outcome: "invalid", detail: "este dispositivo no es un juguete" },
-          { ok: false, error: "invalid", detail: "este dispositivo no es un juguete" },
+          { device_id: device.device_id, type: msg.type, status: 400, outcome: "invalid", detail: result.detail },
+          { ok: false, error: "invalid", detail: result.detail },
         );
-      }
-      const { error } = await admin.from("toy_events").insert({
-        device_id: device.device_id,
-        child_id: device.child_id,
-        occurred_at: at.toISOString(),
-        received_at: receivedAt.toISOString(),
-        ts_source: source,
-        seq: msg.seq,
-      });
-      insertError = error;
-    } else {
-      if (device.kind !== "box" || !device.classroom_id) {
+      case "duplicate":
         return finish(
-          { device_id: device.device_id, type: msg.type, status: 400, outcome: "invalid", detail: "este dispositivo no es una caja" },
-          { ok: false, error: "invalid", detail: "este dispositivo no es una caja" },
-        );
-      }
-      const { error } = await admin.from("sensor_readings").insert({
-        device_id: device.device_id,
-        classroom_id: device.classroom_id,
-        measured_at: at.toISOString(),
-        received_at: receivedAt.toISOString(),
-        ts_source: source,
-        seq: msg.seq,
-        window_s: msg.window_s ?? null,
-        noise_avg: msg.noise_avg ?? null,
-        noise_peak: msg.noise_peak ?? null,
-        light_lux: msg.light_lux ?? null,
-        temp_c: msg.temp_c ?? null,
-        humidity_pct: msg.humidity_pct ?? null,
-      });
-      insertError = error;
-    }
-
-    if (insertError) {
-      // 23505 = violación de unicidad: (device_id, seq) repetido → idempotente
-      if (insertError.code === "23505") {
-        return finish(
-          { device_id: device.device_id, type: msg.type, status: 409, outcome: "duplicate", detail: `seq ${msg.seq} repetido` },
+          { device_id: device.device_id, type: msg.type, status: 409, outcome: "duplicate", detail: `seq ${result.seq} repetido` },
           { ok: true, duplicate: true },
         );
-      }
-      return finish(
-        { device_id: device.device_id, type: msg.type, status: 500, outcome: "error", detail: insertError.message },
-        { ok: false, error: "error" },
-      );
+      case "error":
+        return finish(
+          { device_id: device.device_id, type: msg.type, status: 500, outcome: "error", detail: result.detail },
+          { ok: false, error: "error" },
+        );
+      case "ok":
+        return finish(
+          { device_id: device.device_id, type: msg.type, status: 201, outcome: "ok", detail: result.source === "ntp" ? undefined : `ts_source=${result.source}` },
+          { ok: true },
+        );
     }
-
-    await admin
-      .from("devices")
-      .update({ last_seen_at: receivedAt.toISOString() })
-      .eq("device_id", device.device_id);
-
-    return finish(
-      { device_id: device.device_id, type: msg.type, status: 201, outcome: "ok", detail: source === "ntp" ? undefined : `ts_source=${source}` },
-      { ok: true },
-    );
   } catch (e) {
     return finish(
       { ...log, status: 500, outcome: "error", detail: e instanceof Error ? e.message : "error desconocido" },

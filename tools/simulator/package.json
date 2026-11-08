@@ -10,7 +10,8 @@
     "check-rls": "tsx --env-file=../../apps/web/.env.local check-rls.ts",
     "link": "tsx --env-file=../../apps/web/.env.local link-user.ts",
     "check-pages": "node --env-file=../../apps/web/.env.local check-pages.mjs",
-    "check-realtime": "node --env-file=../../apps/web/.env.local check-realtime.mjs"
+    "check-realtime": "node --env-file=../../apps/web/.env.local check-realtime.mjs",
+    "check-demo": "node --env-file=../../apps/web/.env.local check-demo.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0"

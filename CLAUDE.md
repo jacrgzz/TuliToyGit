@@ -25,7 +25,7 @@ Nombre vigente: **Tuli**. En la UI y el código nuevo usa solo "Tuli". Antes: Ti
 | UI | Tailwind CSS + shadcn/ui + Recharts |
 | Validación | zod |
 | Datos y auth | Supabase (Postgres, Auth, Realtime), migraciones con Supabase CLI en `supabase/migrations` |
-| PWA | Serwist (solo instalación y caché básico) |
+| PWA | Manifest + íconos (instalable). Sin service worker a propósito: no se cachea nada offline porque los datos de los niños son sensibles |
 | Despliegue | Vercel |
 | Simulador | Node + TypeScript en `tools/simulator` |
 | Firmware | Arduino/PlatformIO en `firmware/` (después de la demo) |
@@ -68,6 +68,8 @@ Simulador y datos de demo (ejecutar dentro de `tools/simulator`; carga `apps/web
 Verificación de punta a punta (con `npm run dev` corriendo y datos provisionados), desde `tools/simulator`: `npm run check-pages` (páginas del dashboard como cada usuario demo, incluido que un tutor no abra datos ajenos) y `npm run check-realtime` (Realtime respeta RLS; hay que esperar ~1.5 s tras suscribirse antes de insertar).
 
 Rutas del dashboard: `/dashboard` (docente: panel del salón; tutor con un niño: redirige), `/dashboard/ninos/[id]` (condiciones ahora, patrones, momentos), `/dashboard/eventos/[id]` (contexto de 5 min). Vistas SQL: `event_context`, `event_summary`; función `child_patterns` (migración `resumen_y_patrones`). Umbrales y parámetros de patrones en `lib/thresholds.ts`. El lint prohíbe `Date.now()` dentro de componentes: usar los helpers de `lib/format.ts`.
+
+Modo demo (`DEMO_MODE=true` en el servidor; **apagarlo en producción real**): `/demo` es una página donde el teléfono hace de juguete (botón) y de caja (micrófono = solo nivel de ruido, nunca audio; sliders de luz, temperatura y humedad). Usa server actions en `features/ingest/demo-actions.ts` con los dispositivos `tuli-toy-demo` y `tuli-box-demo` (provisionados); exige sesión y que RLS deje ver el dispositivo. `npm run check-demo` (en `tools/simulator`) lo prueba.
 
 Login: Google vía Supabase (`/login`, callback en `/auth/callback`) más un formulario de correo y contraseña **solo** para las cuentas demo. Hay que activar Google en Supabase una vez (`docs/google-login.md`). La vista del dashboard (docente o tutor) se decide por los datos vinculados (`teacher_classrooms`), no por `profiles.role`. Con Cache Components, todo componente que lea cookies o datos del usuario va dentro de `<Suspense>`. La sesión se refresca en `src/proxy.ts`. Requiere `SUPABASE_SERVICE_ROLE_KEY` y `npm run dev` corriendo. No leas ni imprimas esos valores de `.env.local`.
 

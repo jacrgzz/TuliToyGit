@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   title: "Tuli",
   description:
     "Tuli muestra qué condiciones del ambiente coinciden con los momentos en que un niño usa su juguete. No es un dispositivo médico ni ofrece diagnósticos.",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#db4a2b",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
