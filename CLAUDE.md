@@ -1,0 +1,118 @@
+# Tuli Toy: Not A Regular Toy
+
+Sistema IoT (juguete fidget + caja multisensor) y una PWA que muestra qué condiciones del ambiente (ruido, luz, temperatura, humedad) preceden los momentos de nerviosismo, ansiedad o miedo de un niño. Para padres/tutores y docentes.
+
+**Tuli no diagnostica ni trata nada.** Solo muestra coincidencias entre condiciones y eventos. Todo texto de la interfaz debe respetarlo (nunca "detectamos ansiedad", sí "estas condiciones coincidieron con los eventos").
+
+Contexto histórico completo (objetivos, cronograma, hardware original): `docs/contexto-original-2026-10-15.md`. Si algo de ese archivo contradice a este o al código, gana este archivo; si contradice al código, gana el código. Señala la diferencia y pregunta.
+
+## Estado actual (8 nov 2026)
+
+- Sprint de 1 semana para tener **demo** de landing + login + dashboard. Trabaja una sola persona (Lucy) con Claude Code.
+- El **IoT no está listo**: la demo usa datos **simulados**. El firmware real de los ESP32 queda fuera de esta semana y se integrará después con el mismo contrato (`docs/contrato-datos.md`).
+- Plan día por día: `docs/plan-semana.md`.
+- Supabase: proyecto **nuevo** (el anterior se abandona porque su contraseña se subió a git).
+
+## Nombres
+
+Nombre vigente: **Tuli**. En la UI y el código nuevo usa solo "Tuli". Antes: Tilo / Not-A-Regular-Toy / `tilo-*` (el PDF de marca todavía dice "Tilo"). Todos son el mismo proyecto. Los dispositivos de prueba se llaman `tuli-toy-01` y `tuli-box-01`.
+
+## Stack
+
+| Capa | Tecnología |
+| --- | --- |
+| Web + API | Next.js (App Router) + TypeScript, en `apps/web` |
+| UI | Tailwind CSS + shadcn/ui + Recharts |
+| Validación | zod |
+| Datos y auth | Supabase (Postgres, Auth, Realtime), migraciones con Supabase CLI en `supabase/migrations` |
+| PWA | Serwist (solo instalación y caché básico) |
+| Despliegue | Vercel |
+| Simulador | Node + TypeScript en `tools/simulator` |
+| Firmware | Arduino/PlatformIO en `firmware/` (después de la demo) |
+
+Decisiones tomadas (no reabrir sin motivo):
+- Monolito modular; sin microservicios.
+- **Sin Database Webhooks.** La correlación es una vista/función SQL (`event_context`) calculada al consultar.
+- Los dispositivos envían a `POST /api/ingest` con token por dispositivo. Nunca directo a Supabase y nunca con claves de Supabase en el firmware.
+- Español únicamente (sin i18n).
+- Fuera de alcance esta semana: notificaciones push, "machine learning" (solo estadística en SQL), sensores extra (SCD41, mmWave, AS7341, SGP41), RTC.
+
+## Estructura del repo
+
+```
+apps/web          Next.js: src/app (rutas delgadas), src/features/<nombre>, src/lib
+supabase          migraciones SQL, seed, políticas RLS
+tools/simulator   simulador de juguete y caja
+firmware          toy/ y box/ (después de la demo)
+docs              arquitectura, contrato de datos, plan, investigación, privacidad
+.claude/skills    skills del proyecto
+```
+
+### Arquitectura (detalle en `docs/arquitectura.md`)
+
+Módulos por feature, sin repositorios ni casos de uso (no usar Clean Architecture). Cada feature en `src/features/<nombre>/` tiene como máximo `queries.ts`, `actions.ts`, `schemas.ts` y `components/`. Features: `ingest`, `auth`, `children`, `events`, `readings`, `devices`, `insights`.
+
+Reglas:
+1. Dependencia en un solo sentido: `app → features → lib`. Una feature no importa el interior de otra.
+2. La seguridad vive en la base de datos (RLS). Las lecturas usan el cliente del usuario; el cliente `admin` (`service_role`) existe solo en `features/ingest`.
+3. El análisis vive en SQL (vistas/funciones en migraciones); TypeScript solo consulta y muestra.
+
+Ingesta: `api/ingest/route.ts` es delgada y delega a `features/ingest/handle.ts` (verifica token → valida con zod → inserta → escribe en `ingest_log`). `features/ingest/schemas.ts` es la **única definición del contrato en código**; el simulador y las pruebas la importan. Tipos de BD generados en `src/lib/database.types.ts`.
+
+Pruebas: solo `vitest` para el contrato y los umbrales, y pruebas de políticas RLS. Sin pruebas de interfaz esta semana.
+
+Comandos (ejecutar dentro de `apps/web`): `npm run dev` (http://localhost:3000), `npm run build`, `npm run lint`, `npm run typecheck`, `npm test` (vitest). Pendiente de crear: `npm run simulate`.
+
+Supabase (ejecutar desde la **raíz** del repo, CLI v3). En v3 los comandos apuntan por defecto a una BD **local en Docker** (no la usamos); para el proyecto real **siempre agrega `--remote`**: `npx supabase migration new <nombre>`, `npx supabase migration list --remote`, `npx supabase db push --remote`, `npx supabase gen types --lang=typescript --remote > apps/web/src/lib/database.types.ts`. El proyecto ya está enlazado (`ngtcqkwjnacazgzjeikl`, nombre `tulitoy`).
+
+MCP de Supabase (`.mcp.json`, limitado a este proyecto): úsalo para inspeccionar tablas, SQL de solo lectura, logs y `get_advisors`. **Las migraciones se aplican con el CLI, nunca con `apply_migration` del MCP.**
+
+Skills del proyecto: `nueva-migracion`, `cambio-contrato` (cualquier cambio a lo que envían los dispositivos), `verificar-feature` (antes de dar algo por terminado), `marca-tuli` (textos y estilo).
+
+**Next.js 16 (versión nueva, no la que conoces):** antes de escribir código de Next, lee la guía relevante en `apps/web/node_modules/next/dist/docs/` (ver `apps/web/AGENTS.md`). Hay "Cache Components" y "Partial Prefetching" activos; `middleware` ahora puede llamarse `proxy`. Verifica en la doc en vez de asumir.
+
+Entorno: `apps/web/.env.local` ya tiene `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` (clave publishable del proyecto nuevo). `SUPABASE_SERVICE_ROLE_KEY` la pega Lucy a mano; Claude no debe leer ni pedir ese valor. Proyecto Supabase: `ngtcqkwjnacazgzjeikl`.
+
+## Modelo de datos (resumen; detalle en `docs/contrato-datos.md`)
+
+`profiles` (role: `guardian` | `teacher`), `classrooms`, `children`, `guardians` (padre↔niño), `teacher_classrooms` (docente↔salón), `devices` (toy ligado a niño, box ligada a salón; guarda hash del token), `toy_events`, `sensor_readings`, vista `event_context` (lecturas de la caja del salón en los N minutos previos a cada pulsación; ventana por defecto 5 min, parametrizable).
+
+RLS: un padre ve solo a sus hijos; un docente ve a los niños de sus salones. Todas las tablas con RLS activada. **Nunca políticas `anon` de insert** (eran solo del prototipo).
+
+## Reglas de privacidad (no negociables)
+
+Los momentos de ansiedad de un niño son datos personales sensibles (LFPDPPP, México).
+- En desarrollo y demo: **solo datos simulados** o de los integrantes. Nada de datos reales de niños.
+- El micrófono solo calcula el nivel de ruido en el dispositivo; nunca se graba ni se envía audio. Sin cámaras.
+- `service_role` solo en servidor (rutas API / scripts locales). Nunca en el navegador, firmware ni repo.
+- Nunca leer, imprimir ni subir `.env*` con valores. Usa `.env.local` (ignorado por git) y mantén `.env.example` sin valores.
+- Registro de usuarios con aviso de que se requiere consentimiento del tutor (borrador de texto; el aviso legal completo queda en backlog).
+
+## Marca y UI
+
+- Color principal: naranja-rojo de la marca, aprox. `#DB4A2B` (tomado del PDF de marca; **confirmar hex exacto con Jac**) sobre blanco/crema. Logo y paleta: `Tuli_Marca.pdf`, `Tuli Branding.md`.
+- No hay wireframes: proponer UI limpia, amable, con aspecto de juguete y no de dispositivo médico. Mobile first (se usa como PWA).
+- Semáforo de condiciones: verde = tranquilo, amarillo = atención, rojo = nivel alto. Umbrales configurables en un solo archivo (`apps/web/src/lib/thresholds.ts`), no hardcodeados en componentes.
+- Skill `marca-tuli` para tono y reglas de texto.
+
+## Hardware (referencia; económico)
+
+- Juguete: ESP32-C3 SuperMini, LiPo + TP4056, botón, interruptor, LED. Botón en GPIO0-5 (solo esos despiertan del deep sleep). Hora con NTP + `millis()` desde la pulsación. Cooldown tras cada pulsación. Batería encerrada, carcasa con tornillos.
+- Caja: ESP32 DevKit, AHT20 (separado del ESP32 por el calor), BH1750, micrófono MAX4466 (nivel relativo, calibrar una vez; mostrar como "ruido aprox.") o INMP441. Con Wi-Fi las lecturas analógicas van en ADC1.
+- Ruido: muestrear continuo y enviar **promedio y pico** por ventana (un portazo dura menos de 1 s).
+- Las lecturas y eventos usan `device_id`; la hora la fija el dispositivo (NTP) y el servidor guarda además `received_at` y `ts_source`.
+
+## Flujo de trabajo
+
+- Esta semana: `main` sin aprobación obligatoria; PRs o commits pequeños y frecuentes, referenciando issue cuando exista (`closes #N`).
+- Commits en español, descriptivos. Squash and merge.
+- Una skill o plan por tarea grande: empezar cada día en modo plan, leer `docs/plan-semana.md` y `docs/contrato-datos.md`.
+- Cada cambio de esquema = una migración nueva en `supabase/migrations` (skill `nueva-migracion`), con RLS y prueba de política.
+- Cambios al contrato de datos se hacen primero en `docs/contrato-datos.md`.
+
+## Cómo trabajar con Lucy
+
+- Responder en español.
+- En hardware y en Git/GitHub, explicar paso a paso y con verificaciones; poca experiencia más allá de protoboard y subir archivos.
+- Si algo en el código, los issues o este archivo se contradice, señalarlo y preguntar en lugar de elegir en silencio.
+- Verificar antes de decir que algo funciona (correr build/lint/pruebas, abrir la página).

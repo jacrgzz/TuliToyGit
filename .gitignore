@@ -1,0 +1,24 @@
+# Secretos
+.env
+.env.*
+!.env.example
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+dist/
+*.tsbuildinfo
+.vercel/
+
+# Supabase local
+supabase/.branches/
+supabase/.temp/
+
+# Sistema y editores
+.DS_Store
+.idea/
+.vscode/
+
+# Claude Code (configuración personal)
+.claude/settings.local.json
