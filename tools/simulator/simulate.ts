@@ -82,6 +82,9 @@ function makeReading(t: Date, pressTimes: number[]): IngestMessage {
   });
 }
 
+// La batería del juguete baja despacio (empieza entre 70 y 100 %).
+let battery = rand(70, 100);
+
 function makePress(t: Date): IngestMessage {
   return ingestMessage.parse({
     type: "press",
@@ -89,6 +92,7 @@ function makePress(t: Date): IngestMessage {
     ts: t.toISOString(),
     ts_source: "ntp",
     seq: nextSeq(),
+    battery_pct: round1((battery = Math.max(5, battery - rand(0, 0.15)))),
   });
 }
 
@@ -140,6 +144,21 @@ async function runLive() {
     const now = new Date();
     await send(makeReading(now, pressTimes));
   }, intervalS * 1000);
+
+  // Latido del juguete cada 60 s (en el firmware real se sugiere cada 30 min).
+  setInterval(async () => {
+    battery = Math.max(5, battery - rand(0, 0.05));
+    await send(
+      ingestMessage.parse({
+        type: "heartbeat",
+        device_id: TOY_ID,
+        ts: new Date().toISOString(),
+        ts_source: "ntp",
+        seq: nextSeq(),
+        battery_pct: round1(battery),
+      }),
+    );
+  }, 60_000);
 
   setInterval(async () => {
     const next = pressTimes[pressTimes.length - 1];

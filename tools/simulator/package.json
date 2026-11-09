@@ -16,7 +16,8 @@
     "history": "tsx --env-file=../../apps/web/.env.local history.ts",
     "check-insights": "node --env-file=../../apps/web/.env.local check-insights.mjs",
     "reset-data": "tsx --env-file=../../apps/web/.env.local reset-data.ts",
-    "check-actions": "node --env-file=../../apps/web/.env.local check-actions.mjs"
+    "check-actions": "node --env-file=../../apps/web/.env.local check-actions.mjs",
+    "check-alert": "node --env-file=../../apps/web/.env.local check-alert.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0"

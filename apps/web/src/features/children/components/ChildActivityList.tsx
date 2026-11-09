@@ -9,9 +9,12 @@ type Activity = Map<string, { count: number; last: string }>;
 export function ChildActivityList({
   kids,
   activity,
+  extra,
 }: {
   kids: Child[];
   activity: Activity;
+  // La capa de app compone aquí lo de otras features (p. ej. el estado del juguete).
+  extra?: (childId: string) => React.ReactNode;
 }) {
   return (
     <ul className="grid gap-3 sm:grid-cols-2">
@@ -29,6 +32,7 @@ export function ChildActivityList({
                   ? `${a.count} ${a.count === 1 ? "momento" : "momentos"} en 24 h · último ${timeAgo(a.last)}`
                   : "Sin momentos en las últimas 24 h"}
               </p>
+              {extra?.(c.id)}
             </Link>
           </li>
         );

@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { AdminPanel } from "@/features/admin/components/AdminPanel";
 import { getViewerRole, requireUser } from "@/features/auth/queries";
+import { ToyStatus } from "@/features/devices/components/ToyStatus";
+import { listToyStatus } from "@/features/devices/queries";
 import { ChildActivityList } from "@/features/children/components/ChildActivityList";
 import { listMyChildren } from "@/features/children/queries";
 import { LiveRefresh } from "@/features/events/components/LiveRefresh";
@@ -29,7 +31,7 @@ async function DashboardHome({ searchParams }: { searchParams: PageProps<"/dashb
     );
   }
 
-  const children = await listMyChildren();
+  const [children, toys] = await Promise.all([listMyChildren(), listToyStatus()]);
 
   if (children.length === 0) {
     return (
@@ -49,7 +51,11 @@ async function DashboardHome({ searchParams }: { searchParams: PageProps<"/dashb
     return (
       <div>
         <h1 className="mb-4 text-2xl font-bold">Mis niños</h1>
-        <ChildActivityList kids={children} activity={await countRecentEventsByChild()} />
+        <ChildActivityList
+          kids={children}
+          activity={await countRecentEventsByChild()}
+          extra={(id) => <ToyStatus toy={toys.get(id)} />}
+        />
       </div>
     );
   }

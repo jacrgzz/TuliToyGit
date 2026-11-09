@@ -1,5 +1,9 @@
 import { ActivityLog } from "@/features/activities/components/ActivityLog";
 import { listActivities } from "@/features/activities/queries";
+import { ToyStatus } from "@/features/devices/components/ToyStatus";
+import { listToyStatus } from "@/features/devices/queries";
+import { LiveNoiseAlert } from "@/features/insights/components/LiveNoiseAlert";
+import { liveNoiseMessage, noiseSensitiveNames } from "@/features/insights/alerts";
 import { ChildActivityList } from "@/features/children/components/ChildActivityList";
 import { listClassroomChildren } from "@/features/children/queries";
 import { LiveRefresh } from "@/features/events/components/LiveRefresh";
@@ -11,7 +15,7 @@ import { PeriodSelector } from "@/features/insights/components/PeriodSelector";
 import { ProfilesTable } from "@/features/insights/components/ProfilesTable";
 import { RedTimeChart } from "@/features/insights/components/RedTimeChart";
 import { noisiestHourSummary } from "@/features/insights/patterns";
-import { getClassroomDailyRed, getClassroomDay, getClassroomNoiseHeatmap, getClassroomProfiles } from "@/features/insights/queries";
+import { getClassroomDailyRed, getClassroomDay, getClassroomNoiseHeatmap, getClassroomProfiles, getLiveNoise } from "@/features/insights/queries";
 import { ConditionsPanel } from "@/features/readings/components/ConditionsPanel";
 import { getLatestReading } from "@/features/readings/queries";
 import type { Period } from "@/lib/period";
@@ -34,7 +38,7 @@ export async function ClassroomView({
   day: string | null;
   basePath: string;
 }) {
-  const [children, reading, activity, profiles, noiseHeat, red, dayData, activities] = await Promise.all([
+  const [children, reading, activity, profiles, noiseHeat, red, dayData, activities, live, toys] = await Promise.all([
     listClassroomChildren(classroomId),
     getLatestReading(classroomId),
     countRecentEventsByChild(),
@@ -43,7 +47,10 @@ export async function ClassroomView({
     getClassroomDailyRed(classroomId, days),
     getClassroomDay(classroomId, day),
     listActivities(classroomId, 14),
+    getLiveNoise(classroomId),
+    listToyStatus(),
   ]);
+  const alert = liveNoiseMessage(live, noiseSensitiveNames(profiles));
 
   return (
     <div className="space-y-8">
@@ -51,6 +58,7 @@ export async function ClassroomView({
         <h1 className="text-2xl font-bold">{title}</h1>
         <LiveRefresh />
       </div>
+      <LiveNoiseAlert message={alert} />
       <section>
         <h2 className="mb-3 text-lg font-semibold">Condiciones del salón ahora</h2>
         <ConditionsPanel reading={reading} />
@@ -126,7 +134,7 @@ export async function ClassroomView({
             Este salón no tiene niños.
           </p>
         ) : (
-          <ChildActivityList kids={children} activity={activity} />
+          <ChildActivityList kids={children} activity={activity} extra={(id) => <ToyStatus toy={toys.get(id)} />} />
         )}
       </section>
     </div>

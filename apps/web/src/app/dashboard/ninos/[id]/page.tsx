@@ -17,7 +17,11 @@ import { timeOfDaySummary, trendSummary } from "@/features/insights/patterns";
 import { Interventions } from "@/features/interventions/components/Interventions";
 import { compareIntervention, listInterventions } from "@/features/interventions/queries";
 import { interventionSummary } from "@/features/interventions/compare";
-import { getActivityLift, getConditionLift, getDailyCounts, getEpisodes, getEventCurve, getHourlyHeatmap } from "@/features/insights/queries";
+import { ComboTable } from "@/features/insights/components/ComboTable";
+import { ThresholdChart } from "@/features/insights/components/ThresholdChart";
+import { comboSummary } from "@/features/insights/combo";
+import { personalThreshold, thresholdSummary } from "@/features/insights/threshold";
+import { getActivityLift, getConditionCombo, getConditionLift, getNoiseDistribution, getDailyCounts, getEpisodes, getEventCurve, getHourlyHeatmap } from "@/features/insights/queries";
 import { ConditionsPanel } from "@/features/readings/components/ConditionsPanel";
 import { getLatestReading } from "@/features/readings/queries";
 import { parsePeriod } from "@/lib/period";
@@ -36,7 +40,7 @@ async function ChildView({ params, searchParams }: { params: Props["params"]; se
   const child = await getChild(id);
   if (!child) notFound();
 
-  const [role, reading, events, lift, curve, heat, daily, episodes, activityLift, interventions] = await Promise.all([
+  const [role, reading, events, lift, curve, heat, daily, episodes, activityLift, interventions, dist, combo] = await Promise.all([
     getViewerRole(),
     getLatestReading(child.classroom_id),
     listEventSummaries(child.id),
@@ -47,6 +51,8 @@ async function ChildView({ params, searchParams }: { params: Props["params"]; se
     getEpisodes(child.id, days),
     getActivityLift(child.id, days),
     listInterventions(child.id),
+    getNoiseDistribution(child.id, days),
+    getConditionCombo(child.id, days),
   ]);
   const compared = await Promise.all(
     interventions.map(async (i) => ({
@@ -77,7 +83,15 @@ async function ChildView({ params, searchParams }: { params: Props["params"]; se
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-semibold">Perfil de sensibilidad</h2>
-          <PeriodSelector current={days} basePath={`/dashboard/ninos/${child.id}`} />
+          <div className="flex flex-wrap items-center gap-2">
+            <PeriodSelector current={days} basePath={`/dashboard/ninos/${child.id}`} />
+            <a
+              href={`/dashboard/ninos/${child.id}/reporte?dias=${days}`}
+              className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium hover:bg-gray-50"
+            >
+              Reporte
+            </a>
+          </div>
         </div>
         <ProfileSummary rows={lift} days={days} />
         <div className="rounded-xl border border-border bg-white p-4">
@@ -91,6 +105,20 @@ async function ChildView({ params, searchParams }: { params: Props["params"]; se
           ) : (
             <p className="text-muted">Todavía no hay momentos con lecturas de la caja en este periodo.</p>
           )}
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Nivel de ruido y combinaciones</h2>
+        <div className="rounded-xl border border-border bg-white p-4">
+          <h3 className="mb-1 font-semibold">Umbral personal de ruido</h3>
+          <p className="mb-3 text-sm">{thresholdSummary(dist)}</p>
+          {dist.length > 0 && <ThresholdChart bins={dist} thresholdDb={personalThreshold(dist)?.db ?? null} />}
+        </div>
+        <div className="rounded-xl border border-border bg-white p-4">
+          <h3 className="mb-1 font-semibold">Ruido y luz juntos</h3>
+          <p className="mb-3 text-sm">{comboSummary(combo)}</p>
+          <ComboTable rows={combo} />
         </div>
       </section>
 

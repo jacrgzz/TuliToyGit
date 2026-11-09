@@ -103,6 +103,47 @@ check(r.text.includes("Bitácora de actividades") && !r.text.includes("Agregar a
 r = await get(admin.cookie, `/dashboard/ninos/${kidA}`);
 check(!r.text.includes("Registrar el cambio"), "el admin no ve el formulario de ajustes");
 
+// ---- Fase 3b: umbral, combinaciones, reporte, CSV, juguetes ----
+console.log("\n# Fase 3b: umbral, combinaciones, reporte y juguetes");
+r = await get(p1.cookie, `/dashboard/ninos/${kidA}`);
+check(r.text.includes("Umbral personal de ruido") && r.text.includes("Ruido y luz juntos"), "el panel muestra el umbral personal y las combinaciones");
+check(r.html.includes(`/dashboard/ninos/${kidA}/reporte?dias=`), "el panel enlaza al reporte");
+r = await get(p1.cookie, `/dashboard/ninos/${kidA}/reporte`);
+check(r.status === 200 && !hasRenderError(r), "el reporte carga sin errores de render");
+check(r.text.includes("Reporte de coincidencias: Alumno A") && r.text.includes("Cómo leer este reporte"), "el reporte trae el título y cómo leerlo");
+check(r.text.includes("no es un dispositivo médico") && r.text.includes("no indican la causa"), "el reporte aclara que no es dispositivo médico ni causa");
+check(r.text.includes("Descargar CSV") && r.text.includes("Imprimir o guardar como PDF"), "el reporte ofrece CSV e imprimir");
+check(!r.text.includes("Nota del docente"), "el reporte no incluye notas del docente");
+r = await get(p2.cookie, `/dashboard/ninos/${kidA}/reporte`);
+check(!r.text.includes("Reporte de coincidencias") && !r.html.includes("Alumno A"), "padre2 NO ve el reporte del hijo de padre1");
+r = await get(teacher.cookie, `/dashboard/ninos/${kidA}/reporte?dias=7`);
+check(r.text.includes("Últimos 7 días"), "el reporte respeta el periodo (?dias=7)");
+
+const csv = async (cookie, path) => {
+  const res = await fetch(base + path, { headers: cookie ? { cookie } : {}, redirect: "manual" });
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  // fetch().text() descarta el BOM al decodificar: se comprueba en los bytes crudos.
+  const bom = bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf;
+  return { status: res.status, type: res.headers.get("content-type"), disp: res.headers.get("content-disposition"), location: res.headers.get("location"), bom, text: new TextDecoder().decode(bytes) };
+};
+let c = await csv(p1.cookie, `/dashboard/ninos/${kidA}/reporte.csv?dias=30`);
+check(c.status === 200 && /text\/csv/.test(c.type ?? ""), "padre1 descarga el CSV de su hijo");
+check(/attachment; filename="tuli-alumno-a-30d\.csv"/.test(c.disp ?? ""), "el CSV se llama tuli-alumno-a-30d.csv");
+check(c.bom && c.text.startsWith("fecha_hora_mexico,fuente_hora") && c.text.split("\r\n").length > 3, "el CSV trae BOM (para Excel), encabezado y filas");
+check(!/ansiedad|nota/i.test(c.text.split("\r\n")[0]), "el CSV no incluye notas ni lenguaje clínico en el encabezado");
+c = await csv(p2.cookie, `/dashboard/ninos/${kidA}/reporte.csv`);
+check(c.status === 404 && !c.text.includes("fecha_hora_mexico"), "padre2 NO puede descargar el CSV del hijo de padre1 (404)");
+c = await csv(null, `/dashboard/ninos/${kidA}/reporte.csv`);
+check(c.status === 307 && c.location?.endsWith("/login"), "sin sesión, el CSV redirige a /login");
+c = await csv(p1.cookie, "/dashboard/ninos/no-es-uuid/reporte.csv");
+check(c.status === 404, "un id inválido en el CSV da 404");
+c = await csv(teacher.cookie, `/dashboard/ninos/${kidA}/reporte.csv`);
+check(c.status === 200, "el docente descarga el CSV de un niño de su salón");
+
+r = await get(teacher.cookie, "/dashboard");
+check(r.text.includes("Última señal del juguete"), "el docente ve la última señal del juguete de cada niño");
+check(!r.text.includes("Ruido alto en el salón ahora"), "sin ruido alto reciente, el panel no muestra aviso");
+
 // ---- Aislamiento entre tutores ----
 console.log("\n# Aislamiento (padre2 intenta ver lo de padre1)");
 r = await get(p2.cookie, `/dashboard/ninos/${kidA}`);

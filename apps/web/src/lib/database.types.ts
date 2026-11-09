@@ -159,6 +159,8 @@ export type Database = {
       }
       devices: {
         Row: {
+          battery_at: string | null
+          battery_pct: number | null
           child_id: string | null
           classroom_id: string | null
           created_at: string
@@ -169,6 +171,8 @@ export type Database = {
           token_hash: string
         }
         Insert: {
+          battery_at?: string | null
+          battery_pct?: number | null
           child_id?: string | null
           classroom_id?: string | null
           created_at?: string
@@ -179,6 +183,8 @@ export type Database = {
           token_hash: string
         }
         Update: {
+          battery_at?: string | null
+          battery_pct?: number | null
           child_id?: string | null
           classroom_id?: string | null
           created_at?: string
@@ -599,6 +605,26 @@ export type Database = {
           wilson_low: number
         }[]
       }
+      child_condition_combo: {
+        Args: {
+          p_child: string
+          p_days?: number
+          p_light_swing?: number
+          p_noise?: number
+        }
+        Returns: {
+          baseline_pct: number
+          baseline_total: number
+          baseline_with: number
+          combo: string
+          event_pct: number
+          events_total: number
+          events_with: number
+          lift: number
+          wilson_high: number
+          wilson_low: number
+        }[]
+      }
       child_condition_lift: {
         Args: {
           p_child: string
@@ -684,6 +710,16 @@ export type Database = {
           period: string
         }[]
       }
+      child_noise_distribution: {
+        Args: { p_bin?: number; p_child: string; p_days?: number }
+        Returns: {
+          baseline_n: number
+          baseline_pct: number
+          bin_start: number
+          events_n: number
+          events_pct: number
+        }[]
+      }
       child_patterns: {
         Args: {
           p_child: string
@@ -732,6 +768,15 @@ export type Database = {
         }[]
       }
       classroom_latest_day: { Args: { p_classroom: string }; Returns: string }
+      classroom_live_noise: {
+        Args: { p_classroom: string; p_minutes?: number; p_noise?: number }
+        Returns: {
+          avg_peak: number
+          high_n: number
+          latest_at: string
+          readings_n: number
+        }[]
+      }
       classroom_noise_heatmap: {
         Args: { p_classroom: string; p_days?: number; p_noise?: number }
         Returns: {

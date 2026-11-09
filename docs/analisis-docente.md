@@ -2,7 +2,7 @@
 
 Qué estadísticas y gráficas muestra (o mostrará) Tuli para ayudar a un docente a entender a cada niño, y **por qué se eligieron**, con fuentes. Las reglas no cambian: Tuli muestra **coincidencias, nunca diagnósticos**, y cada hallazgo lleva su nivel de evidencia.
 
-Estado: la **Fase 1** (A1, A2, A3, A9, B4, C1), la **Fase 2** (A5, A6, A7, B1, B2, B3) y la **Fase 3a** (C3 bitácora, C4 notas y pulsación accidental, C5 antes y después) están implementadas. Fase 3b pendiente: A4, A8, C2, C6, C7.
+Estado: **todas las fases están implementadas**: Fase 1 (A1, A2, A3, A9, B4, C1), Fase 2 (A5, A6, A7, B1, B2, B3), Fase 3a (C3 bitácora, C4 notas y pulsación accidental, C5 antes y después) y Fase 3b (A4 umbral personal, A8 combinaciones, C2 aviso en vivo, C6 reporte y CSV, C7 estado de juguetes). Lo que falta es externo: validar los umbrales con especialistas y que el firmware envíe batería y latidos.
 
 ## Cómo se calcula la Fase 1
 
@@ -26,6 +26,14 @@ Estado: la **Fase 1** (A1, A2, A3, A9, B4, C1), la **Fase 2** (A5, A6, A7, B1, B
 - **B2 (ruido por hora):** % de lecturas con pico ≥ 75 dB por día de la semana y hora.
 - **B3 (zona roja):** % de lecturas de cada día hábil con pico ≥ 75 dB.
 - **Funciones SQL** (migración `horarios_tendencia_salon`, todas `security invoker`): `child_hourly_heatmap`, `child_daily_counts`, `child_episodes`, `classroom_noise_heatmap`, `classroom_daily_red`, `classroom_latest_day`, `classroom_day_timeline`, `classroom_day_events`. La lógica de frases está en `features/insights/patterns.ts`.
+
+## Cómo funciona la Fase 3b
+
+- **A4 Umbral personal** (`child_noise_distribution` + `features/insights/threshold.ts`): distribución del pico de ruido de los 5 min previos a cada momento frente a la de cualquier ventana de 5 min del salón, en intervalos de 5 dB. El umbral es el nivel **más bajo** desde el cual al menos 5 momentos quedan por encima y la fracción de sus momentos es 1.5× o más la del tiempo del salón. No es un límite clínico: describe desde dónde coinciden más.
+- **A8 Combinaciones** (`child_condition_combo`): ruido alto y cambio brusco de luz, en cuatro casos (ambas, solo ruido, solo luz, ninguna), con razón, intervalo de Wilson y evidencia como en A1.
+- **C2 Aviso en vivo** (`classroom_live_noise` + `features/insights/alerts.ts`): avisa si en los últimos 2 minutos hay al menos 3 lecturas, la última tiene menos de 2 minutos y el 80 % o más tuvo pico alto. Nombra a los niños cuyo perfil tiene coincidencia de ruido con evidencia media o alta. Es una **sugerencia sobre el ambiente** ("quizá ayude bajarlo u ofrecer un espacio más tranquilo"), nunca dice qué le pasa a un niño. No es una notificación push (no llega con la app cerrada).
+- **C6 Reporte** (`/dashboard/ninos/[id]/reporte`, `?dias=`): resumen en frases, condiciones, ajustes y "cómo leer este reporte"; se imprime o se guarda como PDF con el diálogo del navegador (sin librerías). `reporte.csv` descarga los momentos (hora de México, números y la marca de accidental; **sin notas ni datos de identidad**; con BOM para Excel y las celdas que parecen fórmulas neutralizadas). Ambos usan el cliente del usuario: un tutor solo obtiene a su hijo.
+- **C7 Estado de los juguetes**: última señal y batería (`devices.battery_pct`). **No se afirma "sin señal"**: el juguete solo envía al usarse, así que se muestra cuándo fue la última señal. Para saber si sigue vivo se agregó al contrato el mensaje opcional `heartbeat`; falta que el firmware lo envíe.
 
 ## Cómo funciona la Fase 3a (lo que el docente escribe)
 

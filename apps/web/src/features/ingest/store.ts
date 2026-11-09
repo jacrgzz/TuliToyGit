@@ -31,7 +31,9 @@ export async function storeMessage(
   const { at, source } = resolveTimestamp(msg.ts, msg.ts_source, receivedAt);
   let insertError: { code?: string; message: string } | null = null;
 
-  if (msg.type === "press") {
+  if (msg.type === "heartbeat") {
+    // Sin fila de evento ni de lectura: solo last_seen_at y la batería (más abajo).
+  } else if (msg.type === "press") {
     if (device.kind !== "toy" || !device.child_id) {
       return { kind: "wrong_device", detail: "este dispositivo no es un juguete" };
     }
@@ -71,10 +73,14 @@ export async function storeMessage(
     return { kind: "error", detail: insertError.message };
   }
 
-  await admin
-    .from("devices")
-    .update({ last_seen_at: receivedAt.toISOString() })
-    .eq("device_id", device.device_id);
+  const deviceUpdate: { last_seen_at: string; battery_pct?: number; battery_at?: string } = {
+    last_seen_at: receivedAt.toISOString(),
+  };
+  if (msg.battery_pct !== undefined && msg.battery_pct !== null) {
+    deviceUpdate.battery_pct = msg.battery_pct;
+    deviceUpdate.battery_at = receivedAt.toISOString();
+  }
+  await admin.from("devices").update(deviceUpdate).eq("device_id", device.device_id);
 
   return { kind: "ok", source };
 }

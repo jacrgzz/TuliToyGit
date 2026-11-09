@@ -62,3 +62,17 @@ export async function countRecentEventsByChild(hours = 24) {
   }
   return map;
 }
+
+// Todos los momentos de un niño en los últimos `days` días (incluye los accidentales, marcados).
+export async function listEventsSince(childId: string, days: number) {
+  const supabase = await createClient();
+  const since = new Date(Date.now() - days * 86400_000).toISOString();
+  const { data, error } = await supabase
+    .from("event_summary")
+    .select("event_id, occurred_at, ts_source, readings_count, noise_avg, noise_peak_max, light_min, light_max, temp_avg, humidity_avg, accidental")
+    .eq("child_id", childId)
+    .gte("occurred_at", since)
+    .order("occurred_at", { ascending: true });
+  if (error) throw new Error(`No se pudieron cargar los momentos: ${error.message}`);
+  return data;
+}

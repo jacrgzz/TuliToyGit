@@ -66,6 +66,35 @@ check(r.status === 400, "JSON roto → 400");
 r = await post(TOY, null, JSON.stringify({ ...press(24), padding: "x".repeat(5000) }));
 check(r.status === 400, "cuerpo mayor a 4096 bytes → 400");
 
+console.log("\n# Batería (campo opcional battery_pct)");
+r = await post(TOY, press(40, { battery_pct: 63.5 }));
+check(r.status === 201, "pulsación con battery_pct válido → 201");
+const { data: dev } = await admin.from("devices").select("battery_pct, battery_at").eq("device_id", "tuli-toy-01").single();
+check(Number(dev?.battery_pct) === 63.5 && !!dev?.battery_at, "la batería se guarda en devices con su hora");
+r = await post(TOY, press(41, { battery_pct: 101 }));
+check(r.status === 400 && (r.json?.issues ?? []).some((i) => i.includes("battery_pct")), "battery_pct fuera de 0 a 100 → 400 y dice qué campo");
+r = await post(TOY, press(42));
+const { data: dev2 } = await admin.from("devices").select("battery_pct").eq("device_id", "tuli-toy-01").single();
+check(r.status === 201 && Number(dev2?.battery_pct) === 63.5, "una pulsación sin battery_pct no borra la última batería conocida");
+
+console.log("\n# Latido (heartbeat)");
+const hb = (n, extra = {}) => ({ type: "heartbeat", device_id: "tuli-toy-01", ts: now(), ts_source: "ntp", seq: seq + n, ...extra });
+const countRows = async () => ({
+  ev: (await admin.from("toy_events").select("*", { count: "exact", head: true })).count,
+  rd: (await admin.from("sensor_readings").select("*", { count: "exact", head: true })).count,
+});
+const rowsBefore = await countRows();
+r = await post(TOY, hb(50, { battery_pct: 41.5 }));
+check(r.status === 201, "latido válido → 201");
+const { data: dev3 } = await admin.from("devices").select("battery_pct, last_seen_at").eq("device_id", "tuli-toy-01").single();
+check(Number(dev3?.battery_pct) === 41.5 && Date.now() - new Date(dev3.last_seen_at).getTime() < 60_000, "el latido actualiza la batería y last_seen_at");
+const rowsAfter = await countRows();
+check(rowsAfter.ev === rowsBefore.ev && rowsAfter.rd === rowsBefore.rd, "el latido NO crea eventos ni lecturas");
+r = await post(TOY, hb(51, { noise_avg: 50 }));
+check(r.status === 400, "un latido con campos de sensor → 400");
+r = await post(BOX, hb(52, { device_id: "tuli-box-01" }));
+check(r.status === 201, "la caja también puede enviar latidos");
+
 console.log("\n# Reglas de hora (se verifica en la base)");
 const future = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 await post(TOY, press(30, { ts: future }));

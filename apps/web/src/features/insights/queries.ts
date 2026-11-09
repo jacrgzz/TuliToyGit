@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { LIFT_PARAMS, PATTERNS } from "@/lib/thresholds";
+import { ALERT, LIFT_PARAMS, PATTERNS } from "@/lib/thresholds";
 
 // Análisis calculados en SQL (migración perfiles_docente); aquí solo se consultan.
 // RLS: si el usuario no puede ver al niño o al salón, recibe ceros o listas vacías.
@@ -155,3 +155,53 @@ export async function getClassroomDay(classroomId: string, requested: string | n
     })),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Fase 3b: umbral personal (A4), combinaciones (A8) y aviso en vivo (C2)
+// ---------------------------------------------------------------------------
+
+export async function getNoiseDistribution(childId: string, days: number) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("child_noise_distribution", { p_child: childId, p_days: days, p_bin: 5 });
+  if (error) throw new Error(`No se pudo calcular la distribución del ruido: ${error.message}`);
+  return data.map((r) => ({
+    bin_start: Number(r.bin_start),
+    events_n: Number(r.events_n),
+    baseline_n: Number(r.baseline_n),
+    events_pct: Number(r.events_pct),
+    baseline_pct: Number(r.baseline_pct),
+  }));
+}
+
+export async function getConditionCombo(childId: string, days: number) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("child_condition_combo", {
+    p_child: childId,
+    p_days: days,
+    p_noise: PATTERNS.noiseHigh,
+    p_light_swing: PATTERNS.lightSwing,
+  });
+  if (error) throw new Error(`No se pudieron calcular las combinaciones: ${error.message}`);
+  // La función SQL llama `combo` a la columna; la lógica de evidencia usa `condition`.
+  return data.map(({ combo, ...rest }) => ({ condition: combo, ...rest }));
+}
+
+// Lecturas de los últimos minutos del salón. `age_ms` se calcula aquí (no en un componente).
+export async function getLiveNoise(classroomId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("classroom_live_noise", {
+    p_classroom: classroomId,
+    p_minutes: ALERT.windowMin,
+    p_noise: PATTERNS.noiseHigh,
+  });
+  if (error) throw new Error(`No se pudo consultar el ruido en vivo: ${error.message}`);
+  const r = data?.[0];
+  return {
+    readings_n: Number(r?.readings_n ?? 0),
+    high_n: Number(r?.high_n ?? 0),
+    avg_peak: r?.avg_peak === null || r?.avg_peak === undefined ? null : Number(r.avg_peak),
+    age_ms: r?.latest_at ? Date.now() - new Date(r.latest_at).getTime() : null,
+  };
+}
+
+export type ConditionComboRow = Awaited<ReturnType<typeof getConditionCombo>>[number];

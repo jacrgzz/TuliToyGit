@@ -97,6 +97,7 @@ if (wantLive) {
   simStep("Realtime respeta RLS", "check-realtime");
   simStep("Modo demo y server actions", "check-demo");
   simStep("Acciones del docente (bitácora, notas, ajustes)", "check-actions");
+  simStep("Aviso en vivo por ruido alto", "check-alert");
   step("Migraciones locales = remotas", ROOT, "npx", ["supabase", "migration", "list", "--remote"], {
     retries: 2,
     validate: (out) => {

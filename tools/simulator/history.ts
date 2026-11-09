@@ -134,7 +134,14 @@ for (const day of schoolDays(DAYS)) {
   const press = (device: "tuli-toy-01" | "tuli-toy-02", t: number) =>
     messages.push({
       token: TOKENS[device]!,
-      msg: ingestMessage.parse({ type: "press", device_id: device, ts: new Date(t).toISOString(), ts_source: "ntp", seq: seq++ }),
+      msg: ingestMessage.parse({
+        type: "press",
+        device_id: device,
+        ts: new Date(t).toISOString(),
+        ts_source: "ntp",
+        seq: seq++,
+        battery_pct: round1(device === "tuli-toy-01" ? rand(60, 95) : rand(10, 18)), // el juguete 02 simula batería baja
+      }),
     });
   for (const t of pressesA) if (t >= start && t <= end) { press("tuli-toy-01", t); stats.pressA++; }
   for (const t of pressesB) if (t >= start && t <= end) { press("tuli-toy-02", t); stats.pressB++; }

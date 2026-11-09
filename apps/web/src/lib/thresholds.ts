@@ -28,6 +28,18 @@ export const PATTERNS = {
   days: 30, // periodo por defecto
 } as const;
 
+// C2: aviso en vivo. Se avisa si en los últimos `windowMin` minutos casi todas las lecturas del salón
+// (`minShare`) tuvieron pico alto, hay lecturas suficientes y la última es reciente.
+export const ALERT = {
+  windowMin: 2,
+  minReadings: 3,
+  minShare: 0.8,
+  maxAgeMs: 2 * 60 * 1000,
+} as const;
+
+// C7: batería del juguete.
+export const BATTERY = { low: 20 } as const;
+
 // Parámetros de las funciones SQL de análisis (child_condition_lift, classroom_profiles).
 export const LIFT_PARAMS = {
   p_noise: PATTERNS.noiseHigh,

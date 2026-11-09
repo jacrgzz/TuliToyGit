@@ -8,6 +8,10 @@ import { z } from "zod";
 export const tsSource = z.enum(["ntp", "server", "unsynced"]);
 export type TsSource = z.infer<typeof tsSource>;
 
+// Los campos numéricos de sensor son opcionales/nulos: un sensor ausente se omite o va null.
+const optionalNumber = (min: number, max: number) =>
+  z.number().min(min).max(max).nullish();
+
 const common = {
   device_id: z.string().min(1).max(64),
   // Hora del evento medida en el dispositivo (ISO 8601 UTC). Opcional si el dispositivo no tiene reloj.
@@ -15,6 +19,8 @@ const common = {
   ts_source: tsSource.optional(),
   // Contador creciente por dispositivo; (device_id, seq) es único. Detecta pérdidas y duplicados.
   seq: z.number().int().nonnegative(),
+  // Carga de la batería (0 a 100). Opcional: el servidor la guarda en devices y el panel avisa si es baja.
+  battery_pct: optionalNumber(0, 100),
 };
 
 export const pressMessage = z
@@ -24,9 +30,13 @@ export const pressMessage = z
   })
   .strict();
 
-// Todos los campos de sensor son opcionales/nulos: un sensor ausente se omite o va null.
-const optionalNumber = (min: number, max: number) =>
-  z.number().min(min).max(max).nullish();
+// Latido opcional: solo actualiza last_seen_at y la batería del dispositivo; no se guarda como evento.
+export const heartbeatMessage = z
+  .object({
+    type: z.literal("heartbeat"),
+    ...common,
+  })
+  .strict();
 
 export const readingMessage = z
   .object({
@@ -44,10 +54,12 @@ export const readingMessage = z
 export const ingestMessage = z.discriminatedUnion("type", [
   pressMessage,
   readingMessage,
+  heartbeatMessage,
 ]);
 
 export type PressMessage = z.infer<typeof pressMessage>;
 export type ReadingMessage = z.infer<typeof readingMessage>;
+export type HeartbeatMessage = z.infer<typeof heartbeatMessage>;
 export type IngestMessage = z.infer<typeof ingestMessage>;
 
 // Tamaño máximo del cuerpo (bytes). Los mensajes reales pesan menos de 300.

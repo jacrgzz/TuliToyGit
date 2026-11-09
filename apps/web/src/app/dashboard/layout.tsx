@@ -8,7 +8,7 @@ export default function DashboardLayout({
 }: LayoutProps<"/dashboard">) {
   return (
     <div className="flex flex-1 flex-col">
-      <header className="border-b border-border bg-white">
+      <header className="border-b border-border bg-white print:hidden">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3">
           <Link href="/dashboard" className="text-xl font-bold text-brand">
             Tuli

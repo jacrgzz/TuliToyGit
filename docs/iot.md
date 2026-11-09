@@ -44,8 +44,12 @@ Transporte: `POST /api/ingest`, HTTPS, JSON, cabecera `Authorization: Bearer <de
 
 Pulsación:
 ```json
-{"type":"press","device_id":"tuli-toy-01","ts":"2026-11-09T10:23:05.120Z","ts_source":"ntp","seq":1042}
+{"type":"press","device_id":"tuli-toy-01","ts":"2026-11-09T10:23:05.120Z","ts_source":"ntp","seq":1042,"battery_pct":87}
 ```
+**Batería (opcional, compatible hacia atrás):** `battery_pct` (0 a 100) puede ir en `press` y en `reading`. Si el firmware lo envía, el servidor lo guarda en `devices.battery_pct` y el panel del docente avisa "batería baja" por debajo del 20 %. Si no lo envía, no pasa nada (se conserva la última conocida). Un valor fuera de 0 a 100 da `400`.
+
+**Latido (opcional):** `{"type":"heartbeat","device_id":"tuli-toy-01","ts":"...","ts_source":"ntp","seq":1043,"battery_pct":86}`. Solo avisa que el dispositivo sigue vivo y su batería: no crea eventos ni lecturas, solo actualiza `last_seen_at` y la batería. Sin latido, un juguete que nadie presiona no se distingue de uno apagado (solo envía al usarse). Intervalo sugerido: cada 30 min (más frecuente gasta batería).
+
 Lectura:
 ```json
 {"type":"reading","device_id":"tuli-box-01","ts":"2026-11-09T10:23:00.000Z","ts_source":"ntp","seq":5531,"window_s":10,"noise_avg":54.2,"noise_peak":71.8,"light_lux":680,"temp_c":24.1,"humidity_pct":48.0}
@@ -106,6 +110,7 @@ Errores típicos y causa probable:
 Datos sensibles de menores (LFPDPPP). El micrófono solo calcula nivel en el dispositivo; nunca se graba ni se envía audio. Sin cámaras ni mediciones del cuerpo. En desarrollo, solo datos simulados o de los integrantes. Nunca `service_role` en firmware ni navegador.
 
 ## 9. Pendientes del IoT
+- **Firmware (Alex):** decidir el intervalo del latido (`type: heartbeat`, sugerido cada 30 min) y enviar `battery_pct` en cada pulsación y en cada latido del juguete (lectura del divisor de voltaje de la LiPo con el ADC1; en el ESP32-C3 SuperMini usar un pin ADC y un divisor 1:2). La caja, al ir a la corriente, puede omitirlo.
 - Confirmar con Alex: lista final de sensores, si se envía promedio y pico, ventana de correlación, tamaño de carcasas.
 - Recuperar el código del prototipo (UNO, `bridge.mjs`, `mic.py`).
 - Elegir micrófono definitivo (MAX4466 vs INMP441) y calibrarlo.

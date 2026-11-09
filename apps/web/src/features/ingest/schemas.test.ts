@@ -51,6 +51,38 @@ describe("contrato v1: mensajes válidos", () => {
   });
 });
 
+describe("contrato v1: battery_pct (opcional)", () => {
+  it("acepta batería válida en pulsación y lectura, y también null u omitida", () => {
+    expect(ingestMessage.safeParse({ ...press, battery_pct: 87 }).success).toBe(true);
+    expect(ingestMessage.safeParse({ ...reading, battery_pct: 100 }).success).toBe(true);
+    expect(ingestMessage.safeParse({ ...press, battery_pct: 0 }).success).toBe(true);
+    expect(ingestMessage.safeParse({ ...press, battery_pct: null }).success).toBe(true);
+    expect(ingestMessage.safeParse(press).success).toBe(true);
+  });
+
+  it("rechaza batería fuera de 0 a 100 o que no es número", () => {
+    expect(ingestMessage.safeParse({ ...press, battery_pct: 101 }).success).toBe(false);
+    expect(ingestMessage.safeParse({ ...press, battery_pct: -1 }).success).toBe(false);
+    expect(ingestMessage.safeParse({ ...reading, battery_pct: "87" }).success).toBe(false);
+  });
+});
+
+describe("contrato v1: latido (heartbeat, opcional)", () => {
+  const hb = { type: "heartbeat", device_id: "tuli-toy-01", ts: "2026-11-09T10:30:00.000Z", ts_source: "ntp", seq: 1043, battery_pct: 86 };
+
+  it("acepta un latido con y sin batería", () => {
+    expect(ingestMessage.safeParse(hb).success).toBe(true);
+    const { battery_pct, ...noBattery } = hb;
+    void battery_pct;
+    expect(ingestMessage.safeParse(noBattery).success).toBe(true);
+  });
+
+  it("rechaza campos de sensor en un latido y batería fuera de rango", () => {
+    expect(ingestMessage.safeParse({ ...hb, noise_avg: 50 }).success).toBe(false);
+    expect(ingestMessage.safeParse({ ...hb, battery_pct: 150 }).success).toBe(false);
+  });
+});
+
 describe("contrato v1: mensajes inválidos", () => {
   it("rechaza un type desconocido", () => {
     expect(ingestMessage.safeParse({ ...press, type: "tap" }).success).toBe(false);

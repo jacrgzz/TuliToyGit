@@ -18,9 +18,25 @@ El firmware nunca usa claves de Supabase.
   "device_id": "tuli-toy-01",
   "ts": "2026-11-09T10:23:05.120Z",
   "ts_source": "ntp",
-  "seq": 1042
+  "seq": 1042,
+  "battery_pct": 87
 }
 ```
+
+### Latido del dispositivo (opcional)
+
+```json
+{
+  "type": "heartbeat",
+  "device_id": "tuli-toy-01",
+  "ts": "2026-11-09T10:30:00.000Z",
+  "ts_source": "ntp",
+  "seq": 1043,
+  "battery_pct": 86
+}
+```
+
+Solo avisa "sigo vivo" y su batería: **no se guarda como evento ni como lectura**; el servidor actualiza `last_seen_at` y la batería del dispositivo. Sin él, un juguete que nadie presiona no se distingue de uno apagado, porque solo envía datos al usarse. El intervalo lo decide el firmware (se sugiere cada 30 minutos; un latido más frecuente gasta batería). Cualquier tipo de dispositivo puede enviarlo.
 
 ### Lectura de la caja (ventana de muestreo)
 
@@ -46,12 +62,13 @@ Todos los campos de sensor son opcionales (un sensor ausente se omite o va `null
 
 | Campo | Tipo | Notas |
 | --- | --- | --- |
-| `type` | `press` \| `reading` | obligatorio |
+| `type` | `press` \| `reading` \| `heartbeat` | obligatorio |
 | `device_id` | texto | `tuli-toy-NN` / `tuli-box-NN` |
 | `ts` | ISO 8601 UTC | hora del evento medida en el dispositivo |
 | `ts_source` | `ntp` \| `server` \| `unsynced` | si es `unsynced`/ausente, el servidor usa `received_at` |
 | `seq` | entero creciente | detecta pérdidas y duplicados; `(device_id, seq)` es único |
 | `window_s` | entero | duración de la ventana de la lectura |
+| `battery_pct` | real 0 a 100 | **Opcional**, en `press` y `reading`. Carga de la batería del dispositivo. Si se envía, el servidor la guarda en `devices.battery_pct` junto con `battery_at` y el panel avisa "batería baja" por debajo del 20 %. Un dispositivo conectado a la corriente (la caja) puede omitirlo. Agregado en v1 sin romper compatibilidad |
 | `noise_avg`, `noise_peak` | real | dB aproximados (ver nota); sin audio |
 | `light_lux` | real | lux |
 | `temp_c` | real | °C |
@@ -76,7 +93,7 @@ La definición en código está en `apps/web/src/features/ingest/schemas.ts`.
 - `children(id, classroom_id, display_name)` (alias o iniciales; sin datos de identidad reales en desarrollo)
 - `guardians(profile_id, child_id)`
 - `teacher_classrooms(profile_id, classroom_id)`
-- `devices(id, device_id, kind toy|box, child_id null, classroom_id null, token_hash, last_seen_at)`
+- `devices(id, device_id, kind toy|box, child_id null, classroom_id null, token_hash, last_seen_at, battery_pct null, battery_at null)`
 - `toy_events(id, device_id, child_id, occurred_at, received_at, ts_source, seq)`
 - `sensor_readings(id, device_id, classroom_id, measured_at, received_at, ts_source, seq, window_s, noise_avg, noise_peak, light_lux, temp_c, humidity_pct)`
 - Vista `event_context(event_id, child_id, occurred_at, reading fields…)`: lecturas de la caja del salón del niño con `measured_at` entre `occurred_at - ventana` y `occurred_at` (ventana por defecto 5 min).

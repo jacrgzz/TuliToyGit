@@ -128,6 +128,31 @@ check(!!anonHeat.error || (anonHeat.data ?? []).length === 0, "anon no puede usa
 const anonLift = await anon.rpc("child_condition_lift", { p_child: kidAId, p_days: 30, ...LP });
 check(!!anonLift.error || (anonLift.data ?? []).every((r) => r.events_total === 0), "anon no puede usar las funciones de análisis");
 
+// ---- Fase 3b: umbral, combinaciones, aviso en vivo y batería ----
+{
+  const dist1 = (await p1.rpc("child_noise_distribution", { p_child: kidAId, p_days: 30, p_bin: 5 })).data ?? [];
+  check(dist1.length > 0, "padre1 obtiene la distribución de ruido de su hijo");
+  const dist2 = (await p2.rpc("child_noise_distribution", { p_child: kidAId, p_days: 30, p_bin: 5 })).data ?? [];
+  check(dist2.every((r: { events_n: number }) => Number(r.events_n) === 0), "padre2 NO obtiene los momentos del hijo de padre1 en la distribución");
+  const combo2 = (await p2.rpc("child_condition_combo", { p_child: kidAId, p_days: 30, p_noise: 75, p_light_swing: 500 })).data ?? [];
+  check(combo2.every((r: { events_total: number }) => Number(r.events_total) === 0), "padre2 NO obtiene las combinaciones del hijo de padre1");
+  const combo1 = (await p1.rpc("child_condition_combo", { p_child: kidAId, p_days: 30, p_noise: 75, p_light_swing: 500 })).data ?? [];
+  check(combo1.length === 4, "padre1 obtiene las 4 combinaciones de su hijo");
+  const anonDist = await anon.rpc("child_noise_distribution", { p_child: kidAId, p_days: 30, p_bin: 5 });
+  check(!!anonDist.error || (anonDist.data ?? []).length === 0, "anon no puede usar las funciones de la Fase 3b");
+  const anonLive = await anon.rpc("classroom_live_noise", { p_classroom: roomOfA, p_minutes: 2, p_noise: 75 });
+  check(!!anonLive.error || Number((anonLive.data ?? [])[0]?.readings_n ?? 0) === 0, "anon no puede consultar el ruido en vivo");
+
+  // Batería: se lee (sin token_hash) pero solo /api/ingest la escribe
+  const bat = await p1.from("devices").select("device_id, battery_pct, battery_at").eq("kind", "toy");
+  check(!bat.error && (bat.data ?? []).length >= 1, "el tutor puede leer la batería de los juguetes de su hijo");
+  check(!!(await p1.from("devices").select("token_hash, battery_pct")).error, "pedir token_hash junto con la batería sigue prohibido");
+  const writeBat = await teacher.from("devices").update({ battery_pct: 1 } as never).eq("kind", "toy").select("id");
+  check(!!writeBat.error || (writeBat.data ?? []).length === 0, "el docente NO puede escribir la batería (solo /api/ingest)");
+  const writeBatP = await p1.from("devices").update({ battery_pct: 1 } as never).eq("kind", "toy").select("id");
+  check(!!writeBatP.error || (writeBatP.data ?? []).length === 0, "el tutor NO puede escribir la batería");
+}
+
 const adminC0 = await login("admin@tuli.test");
 // ---- Fase 3a: escrituras del docente (bitácora, notas, ajustes) ----
 {
