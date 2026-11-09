@@ -65,7 +65,7 @@ async function Report({ params, searchParams }: { params: Props["params"]; searc
   return (
     <article className="mx-auto max-w-3xl space-y-6 print:max-w-none">
       <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <Link href={`/dashboard/ninos/${child.id}?dias=${days}`} className="text-sm text-muted hover:underline">
+        <Link href={`/dashboard/ninos/${child.id}/resumen?dias=${days}`} className="text-sm text-muted hover:underline">
           ← Volver a {child.display_name}
         </Link>
         <div className="flex flex-wrap items-center gap-2">

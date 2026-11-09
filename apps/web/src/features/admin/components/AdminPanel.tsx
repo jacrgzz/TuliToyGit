@@ -67,7 +67,7 @@ export async function AdminPanel() {
               <ul className="mt-2 space-y-1 text-sm">
                 {r.children.map((c) => (
                   <li key={c.id}>
-                    <Link href={`/dashboard/ninos/${c.id}`} className="hover:underline">
+                    <Link href={`/dashboard/ninos/${c.id}/resumen`} className="hover:underline">
                       {c.display_name} · vista del tutor
                     </Link>
                   </li>

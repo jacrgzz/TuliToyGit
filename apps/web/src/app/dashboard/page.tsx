@@ -9,7 +9,7 @@ import { listMyChildren } from "@/features/children/queries";
 import { LiveRefresh } from "@/features/events/components/LiveRefresh";
 import { countRecentEventsByChild } from "@/features/events/queries";
 import { parseDay, parsePeriod } from "@/lib/period";
-import { ClassroomView } from "./_components/ClassroomView";
+import { DaySection, KidsSection, LiveSection } from "./_components/ClassroomSections";
 
 async function DashboardHome({ searchParams }: { searchParams: PageProps<"/dashboard">["searchParams"] }) {
   await requireUser();
@@ -44,7 +44,7 @@ async function DashboardHome({ searchParams }: { searchParams: PageProps<"/dashb
 
   // Tutor con un solo niño: directo a su panel.
   if (role === "guardian" && children.length === 1) {
-    redirect(`/dashboard/ninos/${children[0].id}`);
+    redirect(`/dashboard/ninos/${children[0].id}/resumen`);
   }
 
   if (role === "guardian") {
@@ -60,16 +60,18 @@ async function DashboardHome({ searchParams }: { searchParams: PageProps<"/dashb
     );
   }
 
-  // Docente: su salón (condiciones y actividad de cada niño).
+  // Docente: "Hoy" = aviso en vivo, condiciones, un día en el salón y sus niños.
+  // El resto del salón está en las demás secciones de la barra lateral.
   return (
-    <ClassroomView
-      classroomId={children[0].classroom_id}
-      title="Panel del salón"
-      days={days}
-      day={day}
-      canEdit={role === "teacher"}
-      basePath="/dashboard"
-    />
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Hoy</h1>
+        <LiveRefresh />
+      </div>
+      <LiveSection classroomId={children[0].classroom_id} days={days} />
+      <DaySection classroomId={children[0].classroom_id} days={days} day={day} basePath="/dashboard" />
+      <KidsSection classroomId={children[0].classroom_id} />
+    </div>
   );
 }
 

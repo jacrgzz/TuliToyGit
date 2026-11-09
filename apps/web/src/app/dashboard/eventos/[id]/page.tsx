@@ -36,7 +36,7 @@ async function EventView({ params }: { params: PageProps<"/dashboard/eventos/[id
     <div className="space-y-6">
       <div>
         <Link
-          href={child ? `/dashboard/ninos/${child.id}` : "/dashboard"}
+          href={child ? `/dashboard/ninos/${child.id}/momentos` : "/dashboard"}
           className="text-sm text-muted hover:underline"
         >
           ← Volver{child ? ` a ${child.display_name}` : ""}

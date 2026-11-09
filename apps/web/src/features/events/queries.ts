@@ -6,7 +6,7 @@ export async function listEventSummaries(childId: string, limit = 20) {
   const { data, error } = await supabase
     .from("event_summary")
     .select(
-      "event_id, occurred_at, ts_source, readings_count, noise_avg, noise_peak_max, light_min, light_max, temp_avg, humidity_avg, accidental",
+      "event_id, child_id, occurred_at, ts_source, readings_count, noise_avg, noise_peak_max, light_min, light_max, temp_avg, humidity_avg, accidental",
     )
     .eq("child_id", childId)
     .order("occurred_at", { ascending: false })
@@ -73,6 +73,22 @@ export async function listEventsSince(childId: string, days: number) {
     .eq("child_id", childId)
     .gte("occurred_at", since)
     .order("occurred_at", { ascending: true });
+  if (error) throw new Error(`No se pudieron cargar los momentos: ${error.message}`);
+  return data;
+}
+
+// Momentos recientes de todos los niños que el usuario puede ver (RLS: el docente, su salón).
+export async function listRecentEvents(days: number, limit = 100) {
+  const supabase = await createClient();
+  const since = new Date(Date.now() - days * 86400_000).toISOString();
+  const { data, error } = await supabase
+    .from("event_summary")
+    .select(
+      "event_id, child_id, occurred_at, ts_source, readings_count, noise_avg, noise_peak_max, light_min, light_max, temp_avg, humidity_avg, accidental",
+    )
+    .gte("occurred_at", since)
+    .order("occurred_at", { ascending: false })
+    .limit(limit);
   if (error) throw new Error(`No se pudieron cargar los momentos: ${error.message}`);
   return data;
 }
