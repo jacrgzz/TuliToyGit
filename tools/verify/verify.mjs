@@ -24,16 +24,23 @@ const wantStatic = args.has("--all") || !args.has("--live");
 const results = [];
 let abort = false;
 
-function step(name, cwd, cmd, cmdArgs, { critical = false, validate } = {}) {
+// `retries`: reintentos para pasos que dependen de la red del CLI de Supabase (se avisa si hizo falta).
+function step(name, cwd, cmd, cmdArgs, { critical = false, validate, retries = 0 } = {}) {
   if (abort) return;
   const start = Date.now();
   process.stdout.write(`▶ ${name} … `);
-  const r = spawnSync(cmd, cmdArgs, { cwd, encoding: "utf8", env: process.env, maxBuffer: 50 * 1024 * 1024 });
-  const out = `${r.stdout ?? ""}${r.stderr ?? ""}`;
-  let ok = r.status === 0;
-  if (ok && validate) ok = validate(out);
+  let out = "";
+  let ok = false;
+  let attempts = 0;
+  do {
+    attempts++;
+    const r = spawnSync(cmd, cmdArgs, { cwd, encoding: "utf8", env: process.env, maxBuffer: 50 * 1024 * 1024 });
+    out = `${r.stdout ?? ""}${r.stderr ?? ""}`;
+    ok = r.status === 0;
+    if (ok && validate) ok = validate(out);
+  } while (!ok && attempts <= retries);
   const secs = ((Date.now() - start) / 1000).toFixed(1);
-  console.log(`${ok ? "✔" : "✘"} (${secs}s)`);
+  console.log(`${ok ? "✔" : "✘"} (${secs}s)${ok && attempts > 1 ? ` — pasó al reintento ${attempts - 1}` : ""}`);
   if (!ok) {
     const lines = out.trim().split("\n");
     console.log(lines.slice(-25).map((l) => `    ${l}`).join("\n"));
@@ -90,6 +97,7 @@ if (wantLive) {
   simStep("Realtime respeta RLS", "check-realtime");
   simStep("Modo demo y server actions", "check-demo");
   step("Migraciones locales = remotas", ROOT, "npx", ["supabase", "migration", "list", "--remote"], {
+    retries: 2,
     validate: (out) => {
       const line = out.split("\n").reverse().find((l) => l.startsWith('{"migrations"'));
       if (!line) return false;
@@ -98,6 +106,7 @@ if (wantLive) {
     },
   });
   step("Lint del esquema de la base de datos", ROOT, "npx", ["supabase", "db", "lint", "--remote"], {
+    retries: 2,
     validate: (out) => out.includes("No schema errors found"),
   });
 

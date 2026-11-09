@@ -457,6 +457,24 @@ export type Database = {
           wilson_low: number
         }[]
       }
+      child_daily_counts: {
+        Args: { p_child: string; p_days?: number }
+        Returns: {
+          day: string
+          events: number
+          moving_avg: number
+          readings: number
+        }[]
+      }
+      child_episodes: {
+        Args: { p_child: string; p_days?: number; p_gap_min?: number }
+        Returns: {
+          duration_s: number
+          ended_at: string
+          presses: number
+          started_at: string
+        }[]
+      }
       child_event_curve: {
         Args: {
           p_after_min?: number
@@ -474,6 +492,14 @@ export type Database = {
           noise_avg: number
           noise_peak: number
           offset_s: number
+        }[]
+      }
+      child_hourly_heatmap: {
+        Args: { p_child: string; p_days?: number }
+        Returns: {
+          dow: number
+          events: number
+          hour: number
         }[]
       }
       child_patterns: {
@@ -495,6 +521,43 @@ export type Database = {
           light_swing_events: number
           noise_high_events: number
           total_events: number
+        }[]
+      }
+      classroom_daily_red: {
+        Args: { p_classroom: string; p_days?: number; p_noise?: number }
+        Returns: {
+          day: string
+          high_pct: number
+          high_readings: number
+          readings: number
+        }[]
+      }
+      classroom_day_events: {
+        Args: { p_classroom: string; p_day: string }
+        Returns: {
+          child_id: string
+          display_name: string
+          occurred_at: string
+        }[]
+      }
+      classroom_day_timeline: {
+        Args: { p_bucket_min?: number; p_classroom: string; p_day: string }
+        Returns: {
+          bucket_start: string
+          light_avg: number
+          noise_avg: number
+          noise_peak: number
+        }[]
+      }
+      classroom_latest_day: { Args: { p_classroom: string }; Returns: string }
+      classroom_noise_heatmap: {
+        Args: { p_classroom: string; p_days?: number; p_noise?: number }
+        Returns: {
+          dow: number
+          high_pct: number
+          hour: number
+          noise_avg: number
+          readings: number
         }[]
       }
       classroom_profiles: {

@@ -2,7 +2,7 @@
 
 Qué estadísticas y gráficas muestra (o mostrará) Tuli para ayudar a un docente a entender a cada niño, y **por qué se eligieron**, con fuentes. Las reglas no cambian: Tuli muestra **coincidencias, nunca diagnósticos**, y cada hallazgo lleva su nivel de evidencia.
 
-Estado: la **Fase 1** (A1, A2, A3, A9, B4, C1) está implementada. Fase 2: A5, A6, A7, B1, B2, B3. Fase 3: C2 a C7, A4, A8.
+Estado: la **Fase 1** (A1, A2, A3, A9, B4, C1) y la **Fase 2** (A5, A6, A7, B1, B2, B3) están implementadas. Fase 3 pendiente: C2 a C7, A4, A8.
 
 ## Cómo se calcula la Fase 1
 
@@ -15,6 +15,17 @@ Estado: la **Fase 1** (A1, A2, A3, A9, B4, C1) está implementada. Fase 2: A5, A
   - *Media* si hay 5 o más momentos y la razón es de 1.5× o más.
   - *Sin coincidencia notable* en otro caso.
 - **Funciones SQL** (migración `perfiles_docente`, todas `security invoker`, con RLS): `child_condition_lift`, `child_event_curve`, `classroom_profiles`.
+
+## Cómo se calcula la Fase 2
+
+- **Zona horaria:** todo se agrupa en hora de México (`America/Mexico_City`), no en UTC.
+- **A5 (día × hora):** conteo de momentos por día de la semana y hora. El resumen solo afirma una franja si una ventana de 2 horas reúne el 45 % o más de los momentos y hay al menos 10. El mapa muestra de 6 a 18 h y avisa si hay datos fuera.
+- **A6 (tendencia):** momentos por día hábil con promedio móvil de 7 días hábiles. **Un día sin lecturas de la caja es "sin datos", no cero**: una caja apagada no debe parecer una mejoría. El resumen compara los últimos 5 días con datos contra los 5 anteriores y exige 10 días con datos. "Similar" es una diferencia de hasta el 20 %.
+- **A7 (episodios):** pulsaciones separadas por menos de 10 minutos forman un episodio (función de ventana `lag`).
+- **B1 (línea del día):** ruido del salón en tramos de 5 min con una marca por cada momento de cualquier niño; `?dia=YYYY-MM-DD` (por defecto, el último día con lecturas).
+- **B2 (ruido por hora):** % de lecturas con pico ≥ 75 dB por día de la semana y hora.
+- **B3 (zona roja):** % de lecturas de cada día hábil con pico ≥ 75 dB.
+- **Funciones SQL** (migración `horarios_tendencia_salon`, todas `security invoker`): `child_hourly_heatmap`, `child_daily_counts`, `child_episodes`, `classroom_noise_heatmap`, `classroom_daily_red`, `classroom_latest_day`, `classroom_day_timeline`, `classroom_day_events`. La lógica de frases está en `features/insights/patterns.ts`.
 
 ## Catálogo de análisis y gráficas
 

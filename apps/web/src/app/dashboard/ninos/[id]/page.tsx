@@ -10,7 +10,11 @@ import { EventCurveChart } from "@/features/insights/components/EventCurveChart"
 import { PeriodSelector } from "@/features/insights/components/PeriodSelector";
 import { ProfileSummary } from "@/features/insights/components/ProfileSummary";
 import { SensitivityBars } from "@/features/insights/components/SensitivityBars";
-import { getConditionLift, getEventCurve } from "@/features/insights/queries";
+import { EpisodesList } from "@/features/insights/components/EpisodesList";
+import { HourHeatmap } from "@/features/insights/components/HourHeatmap";
+import { TrendChart } from "@/features/insights/components/TrendChart";
+import { timeOfDaySummary, trendSummary } from "@/features/insights/patterns";
+import { getConditionLift, getDailyCounts, getEpisodes, getEventCurve, getHourlyHeatmap } from "@/features/insights/queries";
 import { ConditionsPanel } from "@/features/readings/components/ConditionsPanel";
 import { getLatestReading } from "@/features/readings/queries";
 import { parsePeriod } from "@/lib/period";
@@ -29,12 +33,15 @@ async function ChildView({ params, searchParams }: { params: Props["params"]; se
   const child = await getChild(id);
   if (!child) notFound();
 
-  const [role, reading, events, lift, curve] = await Promise.all([
+  const [role, reading, events, lift, curve, heat, daily, episodes] = await Promise.all([
     getViewerRole(),
     getLatestReading(child.classroom_id),
     listEventSummaries(child.id),
     getConditionLift(child.id, days),
     getEventCurve(child.id, days),
+    getHourlyHeatmap(child.id, days),
+    getDailyCounts(child.id, days),
+    getEpisodes(child.id, days),
   ]);
 
   return (
@@ -73,6 +80,24 @@ async function ChildView({ params, searchParams }: { params: Props["params"]; se
           ) : (
             <p className="text-muted">Todavía no hay momentos con lecturas de la caja en este periodo.</p>
           )}
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Cuándo ocurren sus momentos</h2>
+        <div className="rounded-xl border border-border bg-white p-4">
+          <h3 className="mb-1 font-semibold">Día y hora</h3>
+          <p className="mb-3 text-sm">{timeOfDaySummary(heat)}</p>
+          <HourHeatmap cells={heat} unit="momentos" format={(n) => String(Math.round(n))} caption="Momentos por día de la semana y hora" />
+        </div>
+        <div className="rounded-xl border border-border bg-white p-4">
+          <h3 className="mb-1 font-semibold">Tendencia por día</h3>
+          <p className="mb-3 text-sm">{trendSummary(daily)}</p>
+          <TrendChart rows={daily} />
+        </div>
+        <div className="rounded-xl border border-border bg-white p-4">
+          <h3 className="mb-2 font-semibold">Episodios</h3>
+          <EpisodesList episodes={episodes} />
         </div>
       </section>
 

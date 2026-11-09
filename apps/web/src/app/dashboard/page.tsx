@@ -6,12 +6,14 @@ import { ChildActivityList } from "@/features/children/components/ChildActivityL
 import { listMyChildren } from "@/features/children/queries";
 import { LiveRefresh } from "@/features/events/components/LiveRefresh";
 import { countRecentEventsByChild } from "@/features/events/queries";
-import { parsePeriod } from "@/lib/period";
+import { parseDay, parsePeriod } from "@/lib/period";
 import { ClassroomView } from "./_components/ClassroomView";
 
 async function DashboardHome({ searchParams }: { searchParams: PageProps<"/dashboard">["searchParams"] }) {
   await requireUser();
-  const days = parsePeriod((await searchParams).dias);
+  const sp = await searchParams;
+  const days = parsePeriod(sp.dias);
+  const day = parseDay(sp.dia);
   const role = await getViewerRole();
 
   // Superusuario de solo lectura: todo el sistema en un panel.
@@ -58,6 +60,7 @@ async function DashboardHome({ searchParams }: { searchParams: PageProps<"/dashb
       classroomId={children[0].classroom_id}
       title="Panel del salón"
       days={days}
+      day={day}
       basePath="/dashboard"
     />
   );

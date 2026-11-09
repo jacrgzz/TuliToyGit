@@ -24,6 +24,7 @@ export const PATTERNS = {
   minLift: 1.5, // razón mínima para considerar una coincidencia notable
   minBaselineWindows: 30, // ventanas mínimas en la línea base del salón
   curve: { beforeMin: 10, afterMin: 5, bucketS: 30 },
+  episodeGapMin: 10, // pulsaciones a menos de estos minutos forman un episodio
   days: 30, // periodo por defecto
 } as const;
 

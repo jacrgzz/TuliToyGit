@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getViewerRole, requireUser } from "@/features/auth/queries";
 import { getClassroom } from "@/features/children/queries";
-import { parsePeriod } from "@/lib/period";
+import { parseDay, parsePeriod } from "@/lib/period";
 import { ClassroomView } from "../../_components/ClassroomView";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -14,6 +14,7 @@ async function RoomPage({ params, searchParams }: { params: Props["params"]; sea
   await requireUser();
   const [{ id }, sp] = await Promise.all([params, searchParams]);
   const days = parsePeriod(sp.dias);
+  const day = parseDay(sp.dia);
   if (!UUID.test(id)) notFound();
 
   // Solo docentes del salón y admin: para un tutor RLS devuelve null si no tiene niños ahí.
@@ -27,7 +28,7 @@ async function RoomPage({ params, searchParams }: { params: Props["params"]; sea
           ← Volver al panel de admin
         </Link>
       )}
-      <ClassroomView classroomId={room.id} title={room.name} days={days} basePath={`/dashboard/salones/${room.id}`} />
+      <ClassroomView classroomId={room.id} title={room.name} days={days} day={day} basePath={`/dashboard/salones/${room.id}`} />
     </div>
   );
 }

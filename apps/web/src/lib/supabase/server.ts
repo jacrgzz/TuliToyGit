@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
+import type { Database } from "../database.types";
 
 // Cliente para servidor (paginas, server actions) con la sesion del usuario.
 // Respeta RLS: cada usuario solo ve lo suyo.
@@ -9,7 +10,7 @@ export async function createClient() {
   // El cliente de Supabase usa Date.now() (expiración del token). Con Cache Components y
   // Partial Prefetching eso no puede ocurrir al prerenderizar: se espera a la petición real.
   await connection();
-  return createServerClient(
+  return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {

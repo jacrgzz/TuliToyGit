@@ -62,5 +62,38 @@ console.log(`  ruido promedio 7-10 min antes: ${avg(far).toFixed(1)} dB · 0-3 m
 check((curve ?? []).length > 20, "la curva tiene tramos de −10 a +5 min");
 check(avg(before) > avg(far) + 3, "el ruido sube en los minutos previos a los momentos de Alumno A");
 
+console.log("\n# Fase 2: horarios, episodios, tendencia y salón");
+const heatB = (await teacher.rpc("child_hourly_heatmap", { p_child: byName["Alumno B"].id, p_days: DAYS })).data ?? [];
+const hoursB = {};
+for (const h of heatB) hoursB[h.hour] = (hoursB[h.hour] ?? 0) + Number(h.events);
+const totalB = Object.values(hoursB).reduce((a, b) => a + b, 0);
+const midday = (hoursB[11] ?? 0) + (hoursB[12] ?? 0);
+console.log(`  Alumno B: ${midday} de ${totalB} momentos entre 11 y 13 h (${Math.round((100 * midday) / totalB)} %)`);
+check(midday / totalB > 0.35, "Alumno B (simulado con más momentos al mediodía) concentra momentos entre 11 y 13 h");
+
+const epsA = (await teacher.rpc("child_episodes", { p_child: byName["Alumno A"].id, p_days: DAYS, p_gap_min: 10 })).data ?? [];
+const pressesA = epsA.reduce((a, e) => a + Number(e.presses), 0);
+console.log(`  Alumno A: ${pressesA} momentos en ${epsA.length} episodios`);
+check(epsA.length > 0 && epsA.length < pressesA, "los episodios agrupan pulsaciones cercanas (menos episodios que momentos)");
+check(epsA.every((e) => Number(e.duration_s) >= 0 && new Date(e.ended_at) >= new Date(e.started_at)), "cada episodio tiene duración válida");
+
+const daily = (await teacher.rpc("child_daily_counts", { p_child: byName["Alumno A"].id, p_days: 14 })).data ?? [];
+const noData = daily.filter((d) => Number(d.readings) === 0);
+check(noData.length > 0 && noData.every((d) => d.events === null), "los días sin lecturas de la caja salen 'sin datos' (no cero)");
+check(daily.every((d) => new Date(d.day + "T12:00:00Z").getUTCDay() % 6 !== 0), "la tendencia solo incluye días hábiles");
+
+const nh = (await teacher.rpc("classroom_noise_heatmap", { p_classroom: room, p_days: DAYS, p_noise: 75 })).data ?? [];
+const recess = nh.filter((r) => r.hour === 10);
+const other = nh.filter((r) => r.hour !== 10 && r.hour >= 8 && r.hour <= 13);
+const mean = (xs) => xs.reduce((a, r) => a + Number(r.high_pct), 0) / Math.max(xs.length, 1);
+console.log(`  Ruido alto: ${mean(recess).toFixed(0)} % de lecturas a las 10 h (recreo simulado) vs ${mean(other).toFixed(0)} % en otras horas`);
+check(mean(recess) > mean(other) * 2, "el recreo simulado (10:30 a 11:00) sale como la hora más ruidosa del salón");
+
+const red = (await teacher.rpc("classroom_daily_red", { p_classroom: room, p_days: DAYS, p_noise: 75 })).data ?? [];
+check(red.length > 0 && red.every((d) => Number(d.high_pct) >= 0 && Number(d.high_pct) <= 100), "la zona roja por día está entre 0 y 100 %");
+const latest = (await teacher.rpc("classroom_latest_day", { p_classroom: room })).data;
+const tl = (await teacher.rpc("classroom_day_timeline", { p_classroom: room, p_day: latest, p_bucket_min: 5 })).data ?? [];
+check(!!latest && tl.length > 0, "la línea del día devuelve tramos de 5 min del último día con datos");
+
 console.log(failures === 0 ? "\n✔ Los análisis encuentran los perfiles simulados" : `\n✘ ${failures} verificación(es) fallaron`);
 process.exit(failures === 0 ? 0 : 1);

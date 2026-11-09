@@ -25,7 +25,7 @@ export function EventList({ events }: { events: EventSummary[] }) {
               className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-white p-4 hover:bg-gray-50"
             >
               <div>
-                <p className="font-medium">{formatDateTime(e.occurred_at)}</p>
+                <p className="font-medium">{e.occurred_at ? formatDateTime(e.occurred_at) : "Hora desconocida"}</p>
                 {e.ts_source !== "ntp" && (
                   <p className="text-xs text-attention">Hora aproximada</p>
                 )}

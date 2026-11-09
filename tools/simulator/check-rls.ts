@@ -109,6 +109,22 @@ const profT = (await teacher.rpc("classroom_profiles", { p_classroom: roomOfA, p
 check(profT.length >= 2, `docente obtiene los perfiles de su salón (${profT.length})`);
 const profP2 = (await p2.rpc("classroom_profiles", { p_classroom: roomOfA, p_days: 30, ...LP, p_min_events: 5, p_min_lift: 1.5 })).data ?? [];
 check(profP2.every((p) => p.display_name !== "Alumno A"), "padre2 no ve el perfil de Alumno A en los perfiles del salón");
+// Fase 2: horarios, tendencia, episodios y vistas del salón
+const ownHeat = (await p1.rpc("child_hourly_heatmap", { p_child: kidAId, p_days: 30 })).data ?? [];
+check(ownHeat.length > 0, "padre1 obtiene el mapa de horarios de su hijo");
+const otherHeat = (await p2.rpc("child_hourly_heatmap", { p_child: kidAId, p_days: 30 })).data ?? [];
+check(otherHeat.length === 0, "padre2 NO obtiene el mapa de horarios del hijo de padre1");
+const otherEps = (await p2.rpc("child_episodes", { p_child: kidAId, p_days: 30, p_gap_min: 10 })).data ?? [];
+check(otherEps.length === 0, "padre2 NO obtiene los episodios del hijo de padre1");
+const otherDaily = (await p2.rpc("child_daily_counts", { p_child: kidAId, p_days: 30 })).data ?? [];
+check(otherDaily.every((d) => d.events === null || d.events === 0), "padre2 NO obtiene conteos diarios del hijo de padre1");
+const otherDayEv = (await p2.rpc("classroom_day_events", { p_classroom: roomOfA, p_day: "2026-11-04" })).data ?? [];
+check(otherDayEv.every((e) => e.display_name !== "Alumno A"), "padre2 no ve los momentos de Alumno A en la línea del día del salón");
+const teacherHeat = (await teacher.rpc("classroom_noise_heatmap", { p_classroom: roomOfA, p_days: 30, p_noise: 75 })).data ?? [];
+check(teacherHeat.length > 0, "docente obtiene el ruido por hora de su salón");
+const anonHeat = await anon.rpc("child_hourly_heatmap", { p_child: kidAId, p_days: 30 });
+check(!!anonHeat.error || (anonHeat.data ?? []).length === 0, "anon no puede usar las funciones de la Fase 2");
+
 const anonLift = await anon.rpc("child_condition_lift", { p_child: kidAId, p_days: 30, ...LP });
 check(!!anonLift.error || (anonLift.data ?? []).every((r) => r.events_total === 0), "anon no puede usar las funciones de análisis");
 
