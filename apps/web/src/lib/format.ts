@@ -45,3 +45,8 @@ export function timeAgo(iso: string, now: number = Date.now()) {
   if (s < 86400) return `hace ${Math.round(s / 3600)} h`;
   return `hace ${Math.round(s / 86400)} d`;
 }
+
+// Antigüedad en milisegundos de un instante ISO. Vive aquí (y no en un componente) porque usa la hora actual.
+export function ageMs(iso: string) {
+  return Date.now() - new Date(iso).getTime();
+}

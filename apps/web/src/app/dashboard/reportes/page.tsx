@@ -2,14 +2,14 @@ import { Download, FileText } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { requireUser } from "@/features/auth/queries";
-import { listMyChildren } from "@/features/children/queries";
 import { PeriodSelector } from "@/features/insights/components/PeriodSelector";
 import { parsePeriod } from "@/lib/period";
+import { visibleChildren } from "../_components/room";
 
 async function Reports({ searchParams }: { searchParams: PageProps<"/dashboard/reportes">["searchParams"] }) {
   const [, sp] = await Promise.all([requireUser(), searchParams]);
   const days = parsePeriod(sp.dias);
-  const kids = await listMyChildren();
+  const { kids } = await visibleChildren();
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">

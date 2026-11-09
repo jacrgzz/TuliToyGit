@@ -4,7 +4,9 @@ import { signOut } from "@/features/auth/actions";
 import { getViewerRole } from "@/features/auth/queries";
 import { demoEnabled } from "@/features/ingest/demo";
 import { createClient } from "@/lib/supabase/server";
+import { chooseClassroom } from "./actions";
 import { navItemsFor } from "./nav-items";
+import { getSelectedRoom } from "./room";
 import { SidebarNav } from "./SidebarNav";
 
 // Lee cookies (rol y correo): usar dentro de <Suspense>.
@@ -13,6 +15,9 @@ export async function Sidebar() {
   const { data } = await supabase.auth.getUser();
   if (!data.user) return null;
   const role = await getViewerRole();
+  // Selector de salón: solo para docentes con 2 salones o más.
+  const picker = role === "teacher" ? await getSelectedRoom() : null;
+  const showPicker = !!picker && picker.rooms.length > 1 && !!picker.selected;
 
   const account = (
     <div className="space-y-2 text-sm">
@@ -41,5 +46,15 @@ export async function Sidebar() {
     </form>
   );
 
-  return <SidebarNav items={navItemsFor(role)} account={account} compactAccount={compactAccount} badge={role === "admin" ? "Admin · solo lectura" : undefined} />;
+  return (
+    <SidebarNav
+      items={navItemsFor(role)}
+      account={account}
+      compactAccount={compactAccount}
+      badge={role === "admin" ? "Admin · solo lectura" : undefined}
+      rooms={showPicker ? picker!.rooms : undefined}
+      selectedRoomId={showPicker ? picker!.selected!.id : undefined}
+      chooseRoom={showPicker ? chooseClassroom : undefined}
+    />
+  );
 }

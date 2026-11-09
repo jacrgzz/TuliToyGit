@@ -18,3 +18,13 @@ export function utcToLocalInput(iso: string) {
   const d = new Date(new Date(iso).getTime() - 6 * 3600_000);
   return d.toISOString().slice(0, 16);
 }
+
+// Día de México ("YYYY-MM-DD") de un instante. Se usa para agrupar "hoy" igual que la base de datos.
+export function mxDay(ms: number) {
+  return new Date(ms - 6 * 3600_000).toISOString().slice(0, 10);
+}
+
+// Hoy en México. Vive aquí (y no en un componente) porque depende de la hora actual.
+export function todayMx() {
+  return mxDay(Date.now());
+}

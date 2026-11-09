@@ -78,17 +78,19 @@ export async function listEventsSince(childId: string, days: number) {
 }
 
 // Momentos recientes de todos los niños que el usuario puede ver (RLS: el docente, su salón).
-export async function listRecentEvents(days: number, limit = 100) {
+// `childIds`: limita a esos niños (el docente con varios salones ve solo el elegido).
+export async function listRecentEvents(days: number, limit = 100, childIds?: string[]) {
+  if (childIds && childIds.length === 0) return [];
   const supabase = await createClient();
   const since = new Date(Date.now() - days * 86400_000).toISOString();
-  const { data, error } = await supabase
+  let query = supabase
     .from("event_summary")
     .select(
       "event_id, child_id, occurred_at, ts_source, readings_count, noise_avg, noise_peak_max, light_min, light_max, temp_avg, humidity_avg, accidental",
     )
-    .gte("occurred_at", since)
-    .order("occurred_at", { ascending: false })
-    .limit(limit);
+    .gte("occurred_at", since);
+  if (childIds) query = query.in("child_id", childIds);
+  const { data, error } = await query.order("occurred_at", { ascending: false }).limit(limit);
   if (error) throw new Error(`No se pudieron cargar los momentos: ${error.message}`);
   return data;
 }

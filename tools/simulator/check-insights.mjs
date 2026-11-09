@@ -95,5 +95,13 @@ const latest = (await teacher.rpc("classroom_latest_day", { p_classroom: room })
 const tl = (await teacher.rpc("classroom_day_timeline", { p_classroom: room, p_day: latest, p_bucket_min: 5 })).data ?? [];
 check(!!latest && tl.length > 0, "la línea del día devuelve tramos de 5 min del último día con datos");
 
+// Indicadores de "Hoy": deben coincidir con la zona roja por día (misma definición, días hábiles).
+const stats = (await teacher.rpc("classroom_daily_stats", { p_classroom: room, p_days: DAYS, p_noise: 75, p_temp_low: 18, p_temp_high: 26, p_light_ok: 300 })).data ?? [];
+const statsByDay = new Map(stats.map((d) => [d.day, d]));
+const mismatches = red.filter((d) => Math.abs(Number(statsByDay.get(d.day)?.red_pct ?? -1) - Number(d.high_pct)) > 0.05);
+check(stats.length > 0 && mismatches.length === 0, `classroom_daily_stats coincide con classroom_daily_red en ${red.length} días hábiles`);
+const evTotal = stats.reduce((a, d) => a + Number(d.events), 0);
+check(evTotal > 0 && stats.every((d) => d.temp_ok_pct === null || (Number(d.temp_ok_pct) >= 0 && Number(d.temp_ok_pct) <= 100)), `los indicadores diarios traen ${evTotal} momentos y porcentajes entre 0 y 100`);
+
 console.log(failures === 0 ? "\n✔ Los análisis encuentran los perfiles simulados" : `\n✘ ${failures} verificación(es) fallaron`);
 process.exit(failures === 0 ? 0 : 1);

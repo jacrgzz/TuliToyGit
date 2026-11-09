@@ -1,15 +1,15 @@
 import { Suspense } from "react";
-import { listMyChildren } from "@/features/children/queries";
 import { EventList } from "@/features/events/components/EventList";
 import { listRecentEvents } from "@/features/events/queries";
 import { PeriodSelector } from "@/features/insights/components/PeriodSelector";
 import { parsePeriod } from "@/lib/period";
-import { requireTeacherRoom } from "../_components/room";
+import { requireTeacherRoom, visibleChildren } from "../_components/room";
 
 async function Moments({ searchParams }: { searchParams: PageProps<"/dashboard/momentos">["searchParams"] }) {
   const [, sp] = await Promise.all([requireTeacherRoom(), searchParams]);
   const days = parsePeriod(sp.dias, 7);
-  const [events, kids] = await Promise.all([listRecentEvents(days), listMyChildren()]);
+  const { kids } = await visibleChildren();
+  const events = await listRecentEvents(days, 100, kids.map((k) => k.id));
   const names = new Map(kids.map((k) => [k.id, k.display_name]));
   return (
     <div className="space-y-4">

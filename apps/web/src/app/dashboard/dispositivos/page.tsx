@@ -1,14 +1,17 @@
 import { Suspense } from "react";
 import { requireUser } from "@/features/auth/queries";
-import { listMyChildren, listMyClassrooms } from "@/features/children/queries";
+import { listMyClassrooms } from "@/features/children/queries";
 import { ToyStatus } from "@/features/devices/components/ToyStatus";
 import { listToyStatus } from "@/features/devices/queries";
 import { getLatestReading } from "@/features/readings/queries";
 import { timeAgo } from "@/lib/format";
+import { visibleChildren } from "../_components/room";
 
 async function Devices() {
   await requireUser();
-  const [kids, toys, rooms] = await Promise.all([listMyChildren(), listToyStatus(), listMyClassrooms()]);
+  const [{ kids, room }, toys, allRooms] = await Promise.all([visibleChildren(), listToyStatus(), listMyClassrooms()]);
+  // El docente ve solo la caja de su salón elegido; el tutor y el admin, las que RLS les deja ver.
+  const rooms = room ? allRooms.filter((r) => r.id === room.id) : allRooms;
   const readings = await Promise.all(rooms.map(async (r) => ({ room: r, reading: await getLatestReading(r.id) })));
   return (
     <div className="space-y-8">

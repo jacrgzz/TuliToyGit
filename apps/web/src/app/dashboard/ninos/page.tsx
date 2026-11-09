@@ -1,17 +1,17 @@
 import { Suspense } from "react";
 import { requireUser } from "@/features/auth/queries";
 import { ChildActivityList } from "@/features/children/components/ChildActivityList";
-import { listMyChildren } from "@/features/children/queries";
 import { ToyStatus } from "@/features/devices/components/ToyStatus";
 import { listToyStatus } from "@/features/devices/queries";
 import { countRecentEventsByChild } from "@/features/events/queries";
+import { visibleChildren } from "../_components/room";
 
 async function Kids() {
   await requireUser();
-  const [kids, activity, toys] = await Promise.all([listMyChildren(), countRecentEventsByChild(), listToyStatus()]);
+  const [{ kids, room }, activity, toys] = await Promise.all([visibleChildren(), countRecentEventsByChild(), listToyStatus()]);
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Niños</h1>
+      <h1 className="text-2xl font-bold">Niños{room ? ` · ${room.name}` : ""}</h1>
       {kids.length === 0 ? (
         <p className="rounded-xl border border-border bg-white p-4 text-muted">Todavía no hay niños vinculados a tu cuenta.</p>
       ) : (

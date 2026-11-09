@@ -7,6 +7,7 @@ import {
   Ellipsis,
   FileText,
   House,
+  Monitor,
   School,
   Users,
   X,
@@ -16,6 +17,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { ClassroomPicker } from "./ClassroomPicker";
 import { isActive, type NavIcon, type NavItem } from "./nav-items";
 
 const ICONS: Record<NavIcon, LucideIcon> = {
@@ -26,10 +28,14 @@ const ICONS: Record<NavIcon, LucideIcon> = {
   clipboard: ClipboardList,
   file: FileText,
   cpu: Cpu,
+  monitor: Monitor,
   help: CircleHelp,
 };
 
 const MOBILE_SLOTS = 4;
+
+// Enlaces que abren otra pestaña (p. ej. la pantalla del salón).
+const newTabProps = (item: NavItem) => (item.newTab ? ({ target: "_blank", rel: "noopener" } as const) : {});
 
 // Barra lateral (escritorio y tableta) y barra inferior (teléfono). Es un componente de cliente
 // solo para marcar la sección activa con usePathname; el resto lo arma el servidor.
@@ -38,13 +44,21 @@ export function SidebarNav({
   account,
   compactAccount,
   badge,
+  rooms,
+  selectedRoomId,
+  chooseRoom,
 }: {
   items: NavItem[];
   account: React.ReactNode;
   // Cuenta en tableta (barra de solo íconos): solo el botón de salir.
   compactAccount: React.ReactNode;
   badge?: string;
+  // Selector de salón (docente con 2 salones o más).
+  rooms?: { id: string; name: string }[];
+  selectedRoomId?: string;
+  chooseRoom?: (formData: FormData) => void | Promise<void>;
 }) {
+  const picker = rooms && selectedRoomId && chooseRoom ? { rooms, selectedId: selectedRoomId, action: chooseRoom } : null;
   const pathname = usePathname();
   const [more, setMore] = useState(false);
   const bar = items.slice(0, MOBILE_SLOTS);
@@ -59,6 +73,11 @@ export function SidebarNav({
           <span className="lg:hidden">T</span>
           <span className="hidden lg:inline">Tuli</span>
         </Link>
+        {picker && (
+          <div className="hidden px-3 pb-2 lg:block">
+            <ClassroomPicker {...picker} />
+          </div>
+        )}
         <nav aria-label="Secciones" className="flex-1 space-y-1 overflow-y-auto px-2 py-2">
           {items.map((item) => {
             const Icon = ICONS[item.icon];
@@ -69,6 +88,7 @@ export function SidebarNav({
                 href={item.href}
                 title={item.label}
                 aria-current={active ? "page" : undefined}
+                {...newTabProps(item)}
                 className={`flex items-center justify-center gap-3 rounded-lg px-3 py-2 text-sm font-medium lg:justify-start ${
                   active ? "bg-brand/10 text-brand" : "text-foreground hover:bg-gray-100"
                 }`}
@@ -76,11 +96,15 @@ export function SidebarNav({
                 <Icon aria-hidden className="h-5 w-5 shrink-0" />
                 <span className="hidden lg:inline">{item.label}</span>
                 <span className="sr-only lg:hidden">{item.label}</span>
+                {item.newTab && <span className="sr-only"> (se abre en otra pestaña)</span>}
               </Link>
             );
           })}
         </nav>
-        <div className="flex justify-center border-t border-border p-3 lg:hidden">{compactAccount}</div>
+        <div className="flex flex-col items-center gap-2 border-t border-border p-3 lg:hidden">
+          {picker && <ClassroomPicker {...picker} variant="icon" />}
+          {compactAccount}
+        </div>
         <div className="hidden border-t border-border p-3 lg:block">
           {badge && (
             <span className="mb-2 inline-block rounded-full border border-brand px-2 py-0.5 text-xs font-semibold text-brand">{badge}</span>
@@ -108,6 +132,7 @@ export function SidebarNav({
               key={item.href}
               href={item.href}
               aria-current={active ? "page" : undefined}
+              {...newTabProps(item)}
               className={`flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium ${active ? "text-brand" : "text-muted"}`}
             >
               <Icon aria-hidden className="h-5 w-5" />
@@ -136,6 +161,11 @@ export function SidebarNav({
                 <X aria-hidden className="h-5 w-5" />
               </button>
             </div>
+            {picker && (
+              <div className="mb-3">
+                <ClassroomPicker {...picker} />
+              </div>
+            )}
             <ul className="space-y-1">
               {rest.map((item) => {
                 const Icon = ICONS[item.icon];
@@ -146,10 +176,12 @@ export function SidebarNav({
                       href={item.href}
                       onClick={() => setMore(false)}
                       aria-current={active ? "page" : undefined}
+                      {...newTabProps(item)}
                       className={`flex items-center gap-3 rounded-lg px-3 py-3 font-medium ${active ? "bg-brand/10 text-brand" : "hover:bg-gray-100"}`}
                     >
                       <Icon aria-hidden className="h-5 w-5" />
                       {item.label}
+                      {item.newTab && <span className="sr-only"> (se abre en otra pestaña)</span>}
                     </Link>
                   </li>
                 );

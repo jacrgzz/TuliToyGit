@@ -58,7 +58,7 @@ const admin = await session("admin@tuli.test");
 
 const kidA = (await p1.supabase.from("children").select("id").single()).data.id;
 const kidB = (await p2.supabase.from("children").select("id").single()).data.id;
-const roomId = (await admin.supabase.from("classrooms").select("id").limit(1).single()).data.id;
+const roomId = (await admin.supabase.from("classrooms").select("id").eq("name", "Salón demo").single()).data.id;
 const evA = (await p1.supabase.from("toy_events").select("id").order("occurred_at", { ascending: false }).limit(1)).data[0].id;
 
 // ---- Tutor 1 ----
@@ -211,6 +211,56 @@ r = await get(teacher.cookie, `/dashboard/salones/${roomId}`);
 check(r.text.includes("Niños del salón") && !hasRenderError(r), "docente abre la vista de su salón");
 r = await get(teacher.cookie, `/dashboard/ninos/${kidA}/resumen`);
 check(r.text.includes("Alumno A") && r.text.includes("Niños") && !hasRenderError(r), "docente abre el panel de un niño de su salón");
+
+// ---- Indicadores de Hoy, selector de salón y pantalla del salón ----
+console.log("\n# Docente: indicadores, resumen de la semana, selector de salón y pantalla");
+r = await get(teacher.cookie, "/dashboard");
+check(!hasRenderError(r) && r.text.includes("Indicadores de hoy") && r.text.includes("Esta semana"), "Hoy: indicadores y resumen de la semana");
+for (const title of ["Momentos hoy", "Tiempo con ruido alto", "Temperatura en rango cómodo", "Luz suficiente", "Cobertura de datos"]) {
+  check(r.text.includes(title), `Hoy: indicador "${title}"`);
+}
+check(r.html.includes('href="/dashboard/ayuda#indicadores"'), "Hoy: enlace '¿Por qué estos datos?' a la ayuda");
+check(r.html.includes('href="/pantalla"') && r.html.includes('target="_blank"'), "la barra lateral trae 'Pantalla del salón' (abre otra pestaña)");
+r = await get(teacher.cookie, "/dashboard/ayuda");
+check(r.html.includes('id="indicadores"') && r.text.includes("Indicadores de hoy") && r.text.includes("Wargocki"), "Ayuda explica los indicadores con su fuente");
+check(!/diagn[oó]stic[oa]s? de|causa(n|da)? /i.test(r.text.split("Qué NO es Tuli")[0]), "los textos de los indicadores no hablan de diagnóstico ni de causas");
+
+const rooms = (await teacher.supabase.from("classrooms").select("id, name").order("name")).data ?? [];
+const roomA = rooms.find((x) => x.name === "Salón demo");
+const roomB = rooms.find((x) => x.name === "Salón demo B (vacío)");
+check(rooms.length === 2 && !!roomA && !!roomB, "el docente demo tiene 2 salones");
+r = await get(teacher.cookie, "/dashboard");
+check(r.text.includes("Salón demo B (vacío)") && r.html.includes('name="id"'), "con 2 salones aparece el selector de salón en la barra lateral");
+check(r.text.includes("Hoy · Salón demo") && r.text.includes("Alumno A"), "sin elegir, entra al primer salón");
+
+const asRoom = (id) => `${teacher.cookie}; tuli_salon=${id}`;
+r = await get(asRoom(roomB.id), "/dashboard");
+check(!hasRenderError(r) && r.text.includes("Hoy · Salón demo B (vacío)") && r.text.includes("Este salón no tiene niños") && !r.text.includes("Alumno A"), "con el salón B elegido, Hoy muestra el salón vacío y no los niños del A");
+for (const [path, absent] of [["/dashboard/ninos", "Alumno A"], ["/dashboard/momentos", "Alumno A"], ["/dashboard/reportes", "Alumno A"], ["/dashboard/dispositivos", "Alumno A"]]) {
+  r = await get(asRoom(roomB.id), path);
+  check(r.status === 200 && !hasRenderError(r) && !r.text.includes(absent), `con el salón B elegido, ${path} no muestra a los niños del salón A`);
+}
+r = await get(asRoom(roomB.id), "/dashboard/salon");
+check(!hasRenderError(r) && r.text.includes("Mi salón · Salón demo B (vacío)"), "con el salón B elegido, Mi salón es el B");
+r = await get(asRoom(roomB.id), "/dashboard/bitacora");
+check(!hasRenderError(r) && r.text.includes("Agregar a la bitácora"), "con el salón B elegido, la bitácora es la del B");
+r = await get(asRoom("00000000-0000-4000-8000-000000000000"), "/dashboard");
+check(!hasRenderError(r) && r.text.includes("Hoy · Salón demo") && r.text.includes("Alumno A"), "una cookie con un salón que no existe o no es suyo se ignora (cae al primero)");
+r = await get(`${p1.cookie}; tuli_salon=${roomB.id}`, "/dashboard");
+check(!hasRenderError(r) && !r.text.includes("Salón demo B (vacío)") && !r.text.includes("Indicadores de hoy"), "la cookie del selector no cambia nada para un tutor");
+
+r = await get(teacher.cookie, "/pantalla");
+check(r.status === 200 && !hasRenderError(r) && r.text.includes("Ruido del salón") && r.text.includes("Pantalla completa"), "Pantalla del salón: el docente la ve con su botón de pantalla completa");
+check(!r.text.includes("Alumno A") && !r.text.includes("Alumno B") && !r.text.includes("momento"), "Pantalla del salón: no muestra nombres ni momentos de ningún niño");
+check(r.text.includes("No muestra datos de ningún niño"), "Pantalla del salón: avisa que no muestra datos de niños");
+r = await get(asRoom(roomB.id), "/pantalla");
+check(!hasRenderError(r) && r.text.includes("Salón demo B (vacío)") && r.text.includes("Sin datos recientes"), "Pantalla del salón vacío: dice 'Sin datos recientes' en vez de un color");
+for (const [who, c] of [["un tutor", p1.cookie], ["el admin", admin.cookie]]) {
+  r = await get(c, "/pantalla");
+  check(!hasRenderError(r) && !r.text.includes("Ruido del salón") && !r.text.includes("Pantalla completa"), `${who} no ve la pantalla del salón`);
+}
+r = await get(null, "/pantalla");
+check(r.status === 307 && r.location?.endsWith("/login"), "/pantalla sin sesión redirige a /login");
 
 // ---- Admin ----
 console.log("\n# Admin (solo lectura)");

@@ -5,19 +5,24 @@ import { listToyStatus } from "@/features/devices/queries";
 import { ChildActivityList } from "@/features/children/components/ChildActivityList";
 import { listClassroomChildren } from "@/features/children/queries";
 import { countRecentEventsByChild } from "@/features/events/queries";
-import { liveNoiseMessage, noiseSensitiveNames } from "@/features/insights/alerts";
+import { liveNoiseMessage, noiseSensitiveNames, notableNames } from "@/features/insights/alerts";
 import { DaySelector } from "@/features/insights/components/DaySelector";
 import { DayTimelineChart } from "@/features/insights/components/DayTimelineChart";
 import { HourHeatmap } from "@/features/insights/components/HourHeatmap";
+import { KpiCards } from "@/features/insights/components/KpiCards";
 import { LiveNoiseAlert } from "@/features/insights/components/LiveNoiseAlert";
 import { PeriodSelector } from "@/features/insights/components/PeriodSelector";
 import { ProfilesTable } from "@/features/insights/components/ProfilesTable";
 import { RedTimeChart } from "@/features/insights/components/RedTimeChart";
+import { WeekSummary } from "@/features/insights/components/WeekSummary";
+import { coverageKpi, todayKpis, weekSentences, weekSummary } from "@/features/insights/kpis";
 import { noisiestHourSummary } from "@/features/insights/patterns";
-import { getClassroomDailyRed, getClassroomDay, getClassroomNoiseHeatmap, getClassroomProfiles, getLiveNoise } from "@/features/insights/queries";
+import { getClassroomDailyRed, getClassroomDailyStats, getClassroomDay, getClassroomNoiseHeatmap, getClassroomProfiles, getLiveNoise } from "@/features/insights/queries";
 import { ConditionsPanel } from "@/features/readings/components/ConditionsPanel";
 import { getLatestReading } from "@/features/readings/queries";
 import type { Period } from "@/lib/period";
+import { ageMs } from "@/lib/format";
+import { todayMx } from "@/lib/time-mx";
 import { PATTERNS } from "@/lib/thresholds";
 
 // Secciones de la vista de un salón. Se componen aquí, en la capa de app, porque juntan varias
@@ -38,6 +43,41 @@ export async function LiveSection({ classroomId, days }: { classroomId: string; 
         <ConditionsPanel reading={reading} />
       </section>
     </>
+  );
+}
+
+// Indicadores de "Hoy": K1 a K4 salen de una sola consulta SQL y K5 (cobertura) del estado de los juguetes.
+export async function KpiSection({ classroomId }: { classroomId: string }) {
+  const [stats, kids, toys, reading] = await Promise.all([
+    getClassroomDailyStats(classroomId),
+    listClassroomChildren(classroomId),
+    listToyStatus(),
+    getLatestReading(classroomId),
+  ]);
+  const kpis = [
+    ...todayKpis(stats, todayMx()),
+    coverageKpi(
+      kids.map((c) => toys.get(c.id)?.age_ms ?? null),
+      reading ? ageMs(reading.measured_at) : null,
+    ),
+  ];
+  return <KpiCards kpis={kpis} />;
+}
+
+// Resumen de la semana: lunes a hoy frente al mismo tramo de la semana anterior.
+export async function WeekSection({ classroomId }: { classroomId: string }) {
+  const [stats, heat, profiles] = await Promise.all([
+    getClassroomDailyStats(classroomId),
+    getClassroomNoiseHeatmap(classroomId, 7),
+    getClassroomProfiles(classroomId, 30),
+  ]);
+  const week = weekSummary(stats, todayMx());
+  return (
+    <WeekSummary
+      sentences={weekSentences(week)}
+      noisiestHour={week.daysWithData > 0 ? noisiestHourSummary(heat) : null}
+      notable={notableNames(profiles)}
+    />
   );
 }
 

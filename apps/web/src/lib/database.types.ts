@@ -750,6 +750,25 @@ export type Database = {
           readings: number
         }[]
       }
+      classroom_daily_stats: {
+        Args: {
+          p_classroom: string
+          p_days?: number
+          p_light_ok?: number
+          p_noise?: number
+          p_temp_high?: number
+          p_temp_low?: number
+        }
+        Returns: {
+          day: string
+          events: number
+          isodow: number
+          light_ok_pct: number
+          readings: number
+          red_pct: number
+          temp_ok_pct: number
+        }[]
+      }
       classroom_day_events: {
         Args: { p_classroom: string; p_day: string }
         Returns: {
