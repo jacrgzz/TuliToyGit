@@ -22,10 +22,13 @@ export function EventList({ events }: { events: EventSummary[] }) {
           <li key={e.event_id}>
             <Link
               href={`/dashboard/eventos/${e.event_id}`}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-white p-4 hover:bg-gray-50"
+              className={`flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-white p-4 hover:bg-gray-50 ${e.accidental ? "opacity-60" : ""}`}
             >
               <div>
                 <p className="font-medium">{e.occurred_at ? formatDateTime(e.occurred_at) : "Hora desconocida"}</p>
+                {e.accidental && (
+                  <p className="text-xs font-medium text-muted">Marcado como accidental (no cuenta en los análisis)</p>
+                )}
                 {e.ts_source !== "ntp" && (
                   <p className="text-xs text-attention">Hora aproximada</p>
                 )}

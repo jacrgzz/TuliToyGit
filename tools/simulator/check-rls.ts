@@ -128,6 +128,80 @@ check(!!anonHeat.error || (anonHeat.data ?? []).length === 0, "anon no puede usa
 const anonLift = await anon.rpc("child_condition_lift", { p_child: kidAId, p_days: 30, ...LP });
 check(!!anonLift.error || (anonLift.data ?? []).every((r) => r.events_total === 0), "anon no puede usar las funciones de análisis");
 
+const adminC0 = await login("admin@tuli.test");
+// ---- Fase 3a: escrituras del docente (bitácora, notas, ajustes) ----
+{
+  const roomId = roomOfA as string;
+  const when = new Date(Date.now() - 3 * 86400_000);
+  const startsAt = new Date(when.setHours(10, 0, 0, 0)).toISOString();
+  const endsAt = new Date(new Date(startsAt).getTime() + 30 * 60_000).toISOString();
+
+  // Bitácora de actividades: solo el docente del salón escribe; los tutores leen
+  const mine = await teacher.from("classroom_activities").insert({ classroom_id: roomId, kind: "recreo", name: "Prueba RLS", starts_at: startsAt, ends_at: endsAt }).select("id, created_by").single();
+  check(!mine.error && !!mine.data, "docente crea una actividad en su salón");
+  const actId = mine.data?.id;
+  const teacherId = (await teacher.auth.getUser()).data.user!.id;
+  check(mine.data?.created_by === teacherId, "created_by se llena solo con el docente (no se puede falsear)");
+  check(((await p1.from("classroom_activities").select("id").eq("id", actId)).data ?? []).length === 1, "tutor ve las actividades del salón de su hijo");
+  check(!!(await p1.from("classroom_activities").insert({ classroom_id: roomId, kind: "recreo", name: "x", starts_at: startsAt, ends_at: endsAt })).error, "tutor NO puede crear actividades");
+  const pDel = await p1.from("classroom_activities").delete().eq("id", actId).select("id");
+  check((pDel.data ?? []).length === 0, "tutor NO puede borrar actividades");
+  check(!!(await anon.from("classroom_activities").insert({ classroom_id: roomId, kind: "recreo", name: "x", starts_at: startsAt, ends_at: endsAt })).error, "anon NO puede crear actividades");
+  const faked = await teacher.from("classroom_activities").insert({ classroom_id: roomId, kind: "recreo", name: "x", starts_at: startsAt, ends_at: endsAt, created_by: (await p1.auth.getUser()).data.user!.id } as never);
+  check(!!faked.error, "no se puede falsear created_by al crear");
+  check(!!(await teacher.from("classroom_activities").update({ classroom_id: "00000000-0000-0000-0000-000000000000" } as never).eq("id", actId)).error, "no se puede mover una actividad a otro salón (permiso por columna)");
+  check(!!(await teacher.from("classroom_activities").insert({ classroom_id: roomId, kind: "recreo", name: "x", starts_at: endsAt, ends_at: startsAt })).error, "la base rechaza fin antes del inicio");
+  check(!!(await teacher.from("classroom_activities").insert({ classroom_id: roomId, kind: "juego", name: "x", starts_at: startsAt, ends_at: endsAt })).error, "la base rechaza un tipo desconocido");
+  check(((await p2.from("classroom_activities").select("id").eq("id", actId)).data ?? []).length === 1, "padre2 (mismo salón) también ve las actividades: son del salón, no de un niño");
+  check(!!(await adminC0.from("classroom_activities").insert({ classroom_id: roomId, kind: "recreo", name: "x", starts_at: startsAt, ends_at: endsAt })).error, "admin NO puede crear actividades (solo lectura)");
+  const delOk = await teacher.from("classroom_activities").delete().eq("id", actId).select("id");
+  check((delOk.data ?? []).length === 1, "docente borra su actividad (limpieza)");
+
+  // Notas y pulsación accidental
+  const evId = (await p1.from("toy_events").select("id").order("occurred_at", { ascending: false }).limit(1)).data?.[0]?.id as number;
+  const total = async (c: typeof p1) => ((await c.rpc("child_hourly_heatmap", { p_child: kidAId, p_days: 30 })).data ?? []).reduce((a: number, r: { events: number }) => a + Number(r.events), 0);
+  const before = { p1: await total(p1), teacher: await total(teacher) };
+  check(before.p1 === before.teacher, "antes de marcar nada, tutor y docente cuentan los mismos momentos");
+
+  const note = await teacher.from("event_notes").insert({ event_id: evId, note: "nota de prueba", accidental: true }).select("id, created_by").single();
+  check(!note.error && note.data?.created_by === teacherId, "docente crea nota y marca accidental");
+  check(((await p1.from("event_notes").select("id")).data ?? []).length === 0, "tutor NO puede leer las notas (pueden tener observaciones del aula)");
+  check(!!(await p1.from("event_notes").insert({ event_id: evId, note: "x", accidental: false })).error, "tutor NO puede escribir notas");
+  check(!!(await p2.from("event_notes").insert({ event_id: evId, note: "x", accidental: false })).error, "padre2 NO puede escribir notas del hijo de otro");
+  check(((await teacher.from("event_notes").select("id")).data ?? []).length >= 1, "docente lee sus notas");
+  const adminNotes = ((await adminC0.from("event_notes").select("id")).data ?? []).length;
+  check(adminNotes >= 1, "admin puede leer las notas");
+  check(!!(await adminC0.from("event_notes").update({ note: "hack" }).eq("event_id", evId).select("id")).error || true, "admin no modifica notas");
+  const adminUpd = await adminC0.from("event_notes").update({ note: "hack" }).eq("event_id", evId).select("id");
+  check(!!adminUpd.error || (adminUpd.data ?? []).length === 0, "admin NO puede modificar notas (solo lectura)");
+  check(!!(await teacher.from("event_notes").update({ event_id: 1 } as never).eq("event_id", evId)).error, "no se puede reasignar una nota a otro momento (permiso por columna)");
+
+  const after = { p1: await total(p1), teacher: await total(teacher) };
+  check(after.p1 === before.p1 - 1 && after.teacher === before.teacher - 1, "la pulsación accidental sale del análisis (−1) para tutor y docente por igual");
+  const flag = (await p1.from("event_summary").select("accidental").eq("event_id", evId).single()).data?.accidental;
+  check(flag === true, "el tutor ve el evento marcado como accidental (solo la marca, no la nota)");
+  const liftAfter = ((await p1.rpc("child_condition_lift", { p_child: kidAId, p_days: 30, ...LP })).data ?? [])[0]?.events_total;
+  const liftTeacherAfter = ((await teacher.rpc("child_condition_lift", { p_child: kidAId, p_days: 30, ...LP })).data ?? [])[0]?.events_total;
+  check(liftAfter === liftTeacherAfter, "el perfil de sensibilidad cuenta lo mismo para tutor y docente");
+
+  await teacher.from("event_notes").delete().eq("event_id", evId);
+  const restored = { p1: await total(p1), teacher: await total(teacher) };
+  check(restored.p1 === before.p1 && restored.teacher === before.teacher, "al quitar la nota, el momento vuelve a contar (limpieza)");
+
+  // Ajustes (antes y después)
+  const iv = await teacher.from("interventions").insert({ child_id: kidAId, title: "Prueba RLS", started_on: "2026-11-04", note: "" }).select("id").single();
+  check(!iv.error && !!iv.data, "docente registra un ajuste");
+  check(((await p1.from("interventions").select("id").eq("id", iv.data?.id)).data ?? []).length === 1, "el tutor del niño ve el ajuste");
+  check(((await p2.from("interventions").select("id").eq("id", iv.data?.id)).data ?? []).length === 0, "padre2 NO ve el ajuste del hijo de otro");
+  check(!!(await p1.from("interventions").insert({ child_id: kidAId, title: "x", started_on: "2026-11-04", note: "" })).error, "tutor NO puede registrar ajustes");
+  const cmpP2 = ((await p2.rpc("child_intervention_compare", { p_child: kidAId, p_date: "2026-11-04", p_window_days: 14, p_noise: 75 })).data ?? []);
+  check(cmpP2.every((r: { events: number; days_with_data: number }) => Number(r.events) === 0 && Number(r.days_with_data) === 0), "padre2 NO obtiene la comparación antes y después de un niño ajeno");
+  const cmpOwn = ((await p1.rpc("child_intervention_compare", { p_child: kidAId, p_date: "2026-11-04", p_window_days: 14, p_noise: 75 })).data ?? []);
+  check(cmpOwn.length === 2, "tutor obtiene la comparación antes y después de su hijo");
+  const ivDel = await teacher.from("interventions").delete().eq("id", iv.data?.id).select("id");
+  check((ivDel.data ?? []).length === 1, "docente quita el ajuste (limpieza)");
+}
+
 // ---- Superusuario (admin): ve todo, pero solo lee ----
 const adminC = await login("admin@tuli.test");
 const aKids = (await adminC.from("children").select("id")).data ?? [];

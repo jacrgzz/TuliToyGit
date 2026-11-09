@@ -7,7 +7,7 @@
 // cambies las funciones de análisis o el simulador.
 import { createClient } from "@supabase/supabase-js";
 
-const DAYS = 7;
+const DAYS = 30;
 const P = { p_noise: 75, p_noise_avg: 60, p_light_swing: 500, p_light_high: 1000, p_temp_high: 26, p_hum_high: 60 };
 
 let failures = 0;

@@ -15,6 +15,13 @@ export async function getConditionLift(childId: string, days: number) {
   return data;
 }
 
+export async function getActivityLift(childId: string, days: number) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("child_activity_lift", { p_child: childId, p_days: days });
+  if (error) throw new Error(`No se pudo calcular el perfil por actividad: ${error.message}`);
+  return data;
+}
+
 export async function getEventCurve(childId: string, days: number) {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("child_event_curve", {

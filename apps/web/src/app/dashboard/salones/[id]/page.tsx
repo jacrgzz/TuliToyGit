@@ -28,7 +28,7 @@ async function RoomPage({ params, searchParams }: { params: Props["params"]; sea
           ← Volver al panel de admin
         </Link>
       )}
-      <ClassroomView classroomId={room.id} title={room.name} days={days} day={day} basePath={`/dashboard/salones/${room.id}`} />
+      <ClassroomView classroomId={room.id} title={room.name} days={days} day={day} canEdit={role === "teacher"} basePath={`/dashboard/salones/${room.id}`} />
     </div>
   );
 }

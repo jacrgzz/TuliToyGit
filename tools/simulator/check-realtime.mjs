@@ -1,6 +1,7 @@
 // Verifica que Realtime respeta RLS: el tutor recibe lo de su hijo y otro tutor NO.
 // Requiere: npm run dev corriendo y datos provisionados. Corre: npm run check-realtime
 import { createClient } from "@supabase/supabase-js";
+import { startCleanup } from "./cleanup.mjs";
 
 const base = process.env.APP_URL ?? "http://localhost:3000";
 let failures = 0;
@@ -32,6 +33,7 @@ function listen(client, name, got) {
   });
 }
 
+const cleanup = startCleanup();
 const got1 = [];
 const got2 = [];
 const p1 = await mk("padre1@tuli.test");
@@ -67,5 +69,6 @@ check(got1.includes(`sensor_readings:${seq}`), "padre1 recibe por Realtime la le
 check(!got2.includes(`toy_events:${seq}`), "padre2 NO recibe la pulsación del hijo de padre1");
 check(got2.includes(`sensor_readings:${seq}`), "padre2 sí recibe la lectura del salón compartido (por diseño)");
 
+await cleanup();
 console.log(failures === 0 ? "\n✔ Realtime respeta RLS" : `\n✘ ${failures} verificación(es) fallaron`);
 process.exit(failures === 0 ? 0 : 1);

@@ -1,6 +1,6 @@
 "use client";
 
-import { CartesianGrid, ComposedChart, Legend, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { CartesianGrid, ComposedChart, Legend, Line, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 // B1: línea del día. Ruido del salón (promedio y pico, un solo eje en dB) con una marca vertical
 // por cada momento de cualquier niño. Las marcas llevan la inicial del alias; si hay muchas
@@ -8,13 +8,14 @@ import { CartesianGrid, ComposedChart, Legend, Line, ReferenceLine, ResponsiveCo
 
 type Point = { t: number; noise_avg: number | null; noise_peak: number | null };
 type Ev = { child_id: string; name: string; t: number };
+type Act = { id: string; name: string; start: number; end: number };
 
 const TZ = "America/Mexico_City";
 const hhmm = (t: number) =>
   new Date(t).toLocaleTimeString("es-MX", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: false });
 const initial = (name: string) => name.trim().split(/\s+/).pop()?.slice(0, 2) ?? "?";
 
-export function DayTimelineChart({ points, events }: { points: Point[]; events: Ev[] }) {
+export function DayTimelineChart({ points, events, activities = [] }: { points: Point[]; events: Ev[]; activities?: Act[] }) {
   if (points.length === 0) {
     return <p className="text-muted">No hay lecturas de la caja en este día.</p>;
   }
@@ -47,6 +48,19 @@ export function DayTimelineChart({ points, events }: { points: Point[]; events: 
             />
             <Line dataKey="noise_avg" name="Ruido promedio" stroke="var(--series-1)" strokeWidth={2} dot={false} isAnimationActive={false} />
             <Line dataKey="noise_peak" name="Pico de ruido" stroke="var(--series-2)" strokeWidth={2} dot={false} isAnimationActive={false} />
+            {activities
+              .filter((a) => a.end >= first && a.start <= last)
+              .map((a) => (
+                <ReferenceArea
+                  key={a.id}
+                  x1={Math.max(a.start, first)}
+                  x2={Math.min(a.end, last)}
+                  fill="var(--chart-reference)"
+                  fillOpacity={0.18}
+                  stroke="none"
+                  label={{ value: a.name, position: "insideTopLeft", fill: "var(--muted)", fontSize: 11 }}
+                />
+              ))}
             {events
               .filter((e) => e.t >= first && e.t <= last)
               .map((e, i) => (
@@ -70,7 +84,7 @@ export function DayTimelineChart({ points, events }: { points: Point[]; events: 
         </ResponsiveContainer>
       </div>
       <p className="mt-2 text-xs text-muted">
-        Las líneas verticales son los momentos de los niños ({events.length} en el día).
+        Las líneas verticales son los momentos de los niños ({events.length} en el día).{activities.length > 0 && " Las franjas grises son las actividades de la bitácora."}
         {!labelled && " Son muchos para rotularlos; el detalle está en la lista."}
       </p>
       {events.length > 0 && (

@@ -14,7 +14,10 @@ import { EpisodesList } from "@/features/insights/components/EpisodesList";
 import { HourHeatmap } from "@/features/insights/components/HourHeatmap";
 import { TrendChart } from "@/features/insights/components/TrendChart";
 import { timeOfDaySummary, trendSummary } from "@/features/insights/patterns";
-import { getConditionLift, getDailyCounts, getEpisodes, getEventCurve, getHourlyHeatmap } from "@/features/insights/queries";
+import { Interventions } from "@/features/interventions/components/Interventions";
+import { compareIntervention, listInterventions } from "@/features/interventions/queries";
+import { interventionSummary } from "@/features/interventions/compare";
+import { getActivityLift, getConditionLift, getDailyCounts, getEpisodes, getEventCurve, getHourlyHeatmap } from "@/features/insights/queries";
 import { ConditionsPanel } from "@/features/readings/components/ConditionsPanel";
 import { getLatestReading } from "@/features/readings/queries";
 import { parsePeriod } from "@/lib/period";
@@ -33,7 +36,7 @@ async function ChildView({ params, searchParams }: { params: Props["params"]; se
   const child = await getChild(id);
   if (!child) notFound();
 
-  const [role, reading, events, lift, curve, heat, daily, episodes] = await Promise.all([
+  const [role, reading, events, lift, curve, heat, daily, episodes, activityLift, interventions] = await Promise.all([
     getViewerRole(),
     getLatestReading(child.classroom_id),
     listEventSummaries(child.id),
@@ -42,7 +45,15 @@ async function ChildView({ params, searchParams }: { params: Props["params"]; se
     getHourlyHeatmap(child.id, days),
     getDailyCounts(child.id, days),
     getEpisodes(child.id, days),
+    getActivityLift(child.id, days),
+    listInterventions(child.id),
   ]);
+  const compared = await Promise.all(
+    interventions.map(async (i) => ({
+      ...i,
+      summary: interventionSummary(await compareIntervention(child.id, i.started_on)),
+    })),
+  );
 
   return (
     <div className="space-y-8">
@@ -83,6 +94,18 @@ async function ChildView({ params, searchParams }: { params: Props["params"]; se
         </div>
       </section>
 
+      {activityLift.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Actividades de la bitácora</h2>
+          <div className="rounded-xl border border-border bg-white p-4">
+            <p className="mb-3 text-sm text-muted">
+              ¿Sus momentos ocurren más a menudo durante alguna actividad que en el resto del tiempo?
+            </p>
+            <SensitivityBars rows={activityLift} eventsLabel="Sus momentos durante la actividad" baselineLabel="Tiempo del salón durante la actividad" />
+          </div>
+        </section>
+      )}
+
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Cuándo ocurren sus momentos</h2>
         <div className="rounded-xl border border-border bg-white p-4">
@@ -99,6 +122,14 @@ async function ChildView({ params, searchParams }: { params: Props["params"]; se
           <h3 className="mb-2 font-semibold">Episodios</h3>
           <EpisodesList episodes={episodes} />
         </div>
+      </section>
+
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-lg font-semibold">Ajustes y cambios</h2>
+          <p className="text-sm text-muted">Compara los momentos de los días anteriores y posteriores a un cambio.</p>
+        </div>
+        <Interventions childId={child.id} items={compared} canEdit={role === "teacher"} />
       </section>
 
       <section>

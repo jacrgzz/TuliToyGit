@@ -96,6 +96,7 @@ if (wantLive) {
   simStep("Páginas por rol y aislamiento", "check-pages");
   simStep("Realtime respeta RLS", "check-realtime");
   simStep("Modo demo y server actions", "check-demo");
+  simStep("Acciones del docente (bitácora, notas, ajustes)", "check-actions");
   step("Migraciones locales = remotas", ROOT, "npx", ["supabase", "migration", "list", "--remote"], {
     retries: 2,
     validate: (out) => {

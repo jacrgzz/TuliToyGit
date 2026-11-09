@@ -2,7 +2,7 @@
 
 Qué estadísticas y gráficas muestra (o mostrará) Tuli para ayudar a un docente a entender a cada niño, y **por qué se eligieron**, con fuentes. Las reglas no cambian: Tuli muestra **coincidencias, nunca diagnósticos**, y cada hallazgo lleva su nivel de evidencia.
 
-Estado: la **Fase 1** (A1, A2, A3, A9, B4, C1) y la **Fase 2** (A5, A6, A7, B1, B2, B3) están implementadas. Fase 3 pendiente: C2 a C7, A4, A8.
+Estado: la **Fase 1** (A1, A2, A3, A9, B4, C1), la **Fase 2** (A5, A6, A7, B1, B2, B3) y la **Fase 3a** (C3 bitácora, C4 notas y pulsación accidental, C5 antes y después) están implementadas. Fase 3b pendiente: A4, A8, C2, C6, C7.
 
 ## Cómo se calcula la Fase 1
 
@@ -26,6 +26,13 @@ Estado: la **Fase 1** (A1, A2, A3, A9, B4, C1) y la **Fase 2** (A5, A6, A7, B1, 
 - **B2 (ruido por hora):** % de lecturas con pico ≥ 75 dB por día de la semana y hora.
 - **B3 (zona roja):** % de lecturas de cada día hábil con pico ≥ 75 dB.
 - **Funciones SQL** (migración `horarios_tendencia_salon`, todas `security invoker`): `child_hourly_heatmap`, `child_daily_counts`, `child_episodes`, `classroom_noise_heatmap`, `classroom_daily_red`, `classroom_latest_day`, `classroom_day_timeline`, `classroom_day_events`. La lógica de frases está en `features/insights/patterns.ts`.
+
+## Cómo funciona la Fase 3a (lo que el docente escribe)
+
+- **Quién escribe:** solo el **docente del salón** (política RLS `is_teacher_of_classroom` / `is_teacher_of_child` / `is_teacher_of_event`). El admin sigue siendo de solo lectura; los tutores no escriben. Las escrituras usan el cliente **del usuario** (no `service_role`), así que RLS decide; además hay permisos **por columna**: no se puede cambiar `created_by`, ni mover una actividad a otro salón, ni reasignar una nota a otro momento.
+- **C3 Bitácora** (`classroom_activities`): examen, recreo, música, lectura, cambio u otra, con inicio y fin (máx. 12 h) en hora de México (UTC−6). Aparece como franja gris en la línea del día. En cada niño, `child_activity_lift` trata la actividad como una condición más: ¿sus momentos ocurren más **durante** la actividad que el tiempo del salón que cae en ella? (misma razón e intervalo de Wilson que A1).
+- **C4 Nota y pulsación accidental** (`event_notes`, una por momento): la nota solo la ven los **docentes del salón y el admin** (puede tener observaciones del aula). Una pulsación marcada como accidental **sale de todos los análisis para todos los roles por igual**, vía `accidental_event_ids()` (security definer que solo devuelve ids); el tutor ve la marca pero no la nota. La lista de momentos la muestra atenuada.
+- **C5 Antes y después** (`interventions` + `child_intervention_compare`): compara momentos por día en los 14 días hábiles anteriores y posteriores a un cambio, contando solo días **con lecturas de la caja**. Pide 5 días de cada lado. Es un diseño AB descriptivo (como los de caso único del WWC): se dice siempre que **no demuestra que el ajuste sea la causa**, y las frases no usan "mejoría", "efecto" ni "funcionó".
 
 ## Catálogo de análisis y gráficas
 

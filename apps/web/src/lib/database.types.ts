@@ -91,6 +91,54 @@ export type Database = {
           },
         ]
       }
+      classroom_activities: {
+        Row: {
+          classroom_id: string
+          created_at: string
+          created_by: string
+          ends_at: string
+          id: string
+          kind: string
+          name: string
+          starts_at: string
+        }
+        Insert: {
+          classroom_id: string
+          created_at?: string
+          created_by?: string
+          ends_at: string
+          id?: string
+          kind: string
+          name: string
+          starts_at: string
+        }
+        Update: {
+          classroom_id?: string
+          created_at?: string
+          created_by?: string
+          ends_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          starts_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classroom_activities_classroom_id_fkey"
+            columns: ["classroom_id"]
+            isOneToOne: false
+            referencedRelation: "classrooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "classroom_activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       classrooms: {
         Row: {
           created_at: string
@@ -157,6 +205,62 @@ export type Database = {
           },
         ]
       }
+      event_notes: {
+        Row: {
+          accidental: boolean
+          created_by: string
+          event_id: number
+          id: string
+          note: string
+          updated_at: string
+        }
+        Insert: {
+          accidental?: boolean
+          created_by?: string
+          event_id: number
+          id?: string
+          note?: string
+          updated_at?: string
+        }
+        Update: {
+          accidental?: boolean
+          created_by?: string
+          event_id?: number
+          id?: string
+          note?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_notes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_notes_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "event_context"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "event_notes_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "event_summary"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "event_notes_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "toy_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guardians: {
         Row: {
           child_id: string
@@ -216,6 +320,51 @@ export type Database = {
           type?: string | null
         }
         Relationships: []
+      }
+      interventions: {
+        Row: {
+          child_id: string
+          created_at: string
+          created_by: string
+          id: string
+          note: string
+          started_on: string
+          title: string
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          note?: string
+          started_on: string
+          title: string
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          note?: string
+          started_on?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interventions_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interventions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -407,6 +556,7 @@ export type Database = {
       }
       event_summary: {
         Row: {
+          accidental: boolean | null
           child_id: string | null
           event_id: number | null
           humidity_avg: number | null
@@ -431,8 +581,24 @@ export type Database = {
       }
     }
     Functions: {
+      accidental_event_ids: { Args: never; Returns: number[] }
       can_view_child: { Args: { p_child: string }; Returns: boolean }
       can_view_classroom: { Args: { p_classroom: string }; Returns: boolean }
+      child_activity_lift: {
+        Args: { p_child: string; p_days?: number }
+        Returns: {
+          baseline_pct: number
+          baseline_total: number
+          baseline_with: number
+          condition: string
+          event_pct: number
+          events_total: number
+          events_with: number
+          lift: number
+          wilson_high: number
+          wilson_low: number
+        }[]
+      }
       child_condition_lift: {
         Args: {
           p_child: string
@@ -500,6 +666,22 @@ export type Database = {
           dow: number
           events: number
           hour: number
+        }[]
+      }
+      child_intervention_compare: {
+        Args: {
+          p_child: string
+          p_date: string
+          p_noise?: number
+          p_window_days?: number
+        }
+        Returns: {
+          days_with_data: number
+          events: number
+          events_noise_high: number
+          events_per_day: number
+          events_with_context: number
+          period: string
         }[]
       }
       child_patterns: {
@@ -590,12 +772,16 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_guardian_of: { Args: { p_child: string }; Returns: boolean }
+      is_teacher_of_child: { Args: { p_child: string }; Returns: boolean }
       is_teacher_of_classroom: {
         Args: { p_classroom: string }
         Returns: boolean
       }
+      is_teacher_of_event: { Args: { p_event: number }; Returns: boolean }
       visible_child_ids: { Args: never; Returns: string[] }
       visible_classroom_ids: { Args: never; Returns: string[] }
+      wilson_high: { Args: { k: number; n: number }; Returns: number }
+      wilson_low: { Args: { k: number; n: number }; Returns: number }
     }
     Enums: {
       [_ in never]: never

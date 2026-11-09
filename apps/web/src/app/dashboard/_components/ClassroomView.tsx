@@ -1,3 +1,5 @@
+import { ActivityLog } from "@/features/activities/components/ActivityLog";
+import { listActivities } from "@/features/activities/queries";
 import { ChildActivityList } from "@/features/children/components/ChildActivityList";
 import { listClassroomChildren } from "@/features/children/queries";
 import { LiveRefresh } from "@/features/events/components/LiveRefresh";
@@ -23,14 +25,16 @@ export async function ClassroomView({
   days,
   day,
   basePath,
+  canEdit,
 }: {
   classroomId: string;
   title: string;
+  canEdit: boolean;
   days: Period;
   day: string | null;
   basePath: string;
 }) {
-  const [children, reading, activity, profiles, noiseHeat, red, dayData] = await Promise.all([
+  const [children, reading, activity, profiles, noiseHeat, red, dayData, activities] = await Promise.all([
     listClassroomChildren(classroomId),
     getLatestReading(classroomId),
     countRecentEventsByChild(),
@@ -38,6 +42,7 @@ export async function ClassroomView({
     getClassroomNoiseHeatmap(classroomId, days),
     getClassroomDailyRed(classroomId, days),
     getClassroomDay(classroomId, day),
+    listActivities(classroomId, 14),
   ]);
 
   return (
@@ -73,12 +78,27 @@ export async function ClassroomView({
               <p className="mb-3 text-sm text-muted">
                 Ruido del salón durante el día y los momentos de todos los niños, para ver qué pasó en cada uno.
               </p>
-              <DayTimelineChart points={dayData.timeline} events={dayData.events} />
+              <DayTimelineChart
+                points={dayData.timeline}
+                events={dayData.events}
+                activities={activities.map((a) => ({ id: a.id, name: a.name, start: new Date(a.starts_at).getTime(), end: new Date(a.ends_at).getTime() }))}
+              />
             </>
           ) : (
             <p className="text-muted">Este salón todavía no tiene lecturas.</p>
           )}
         </div>
+      </section>
+
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-lg font-semibold">Bitácora de actividades</h2>
+          <p className="text-sm text-muted">
+            Marca exámenes, recreo, música u otros bloques del día. Aparecen en la línea del día y, en cada niño,
+            se compara si sus momentos coinciden con alguna actividad.
+          </p>
+        </div>
+        <ActivityLog classroomId={classroomId} activities={activities} canEdit={canEdit} />
       </section>
 
       <section className="space-y-4">

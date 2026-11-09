@@ -51,12 +51,22 @@ export const EVIDENCE_LABEL: Record<Evidence, string> = {
   insuficiente: "Datos insuficientes",
 };
 
+// Actividades de la bitácora (condición "act_<tipo>"): el momento ocurre DURANTE la actividad.
+const ACTIVITY_TITLE: Record<string, string> = {
+  act_examen: "Durante un examen",
+  act_recreo: "Durante el recreo",
+  act_musica: "Durante música",
+  act_lectura: "Durante la lectura",
+  act_cambio: "Durante un cambio de actividad o de salón",
+  act_otra: "Durante otra actividad",
+};
+
 export function conditionTitle(key: string) {
-  return CONDITION_TITLE[key as ConditionKey] ?? key;
+  return CONDITION_TITLE[key as ConditionKey] ?? ACTIVITY_TITLE[key] ?? key;
 }
 
 function conditionText(key: string) {
-  return CONDITION_TEXT[key as ConditionKey] ?? key;
+  return CONDITION_TEXT[key as ConditionKey] ?? ACTIVITY_TITLE[key]?.toLowerCase() ?? key;
 }
 
 // Razón efectiva: si la condición nunca apareció en la línea base pero sí antes de momentos,

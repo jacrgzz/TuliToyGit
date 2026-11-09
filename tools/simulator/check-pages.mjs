@@ -86,6 +86,23 @@ check(!r.text.includes("Condiciones del salón ahora"), "id de niño inválido n
 r = await get(p1.cookie, "/dashboard/eventos/abc");
 check(!r.text.includes("Lecturas de la caja"), "id de evento inválido no muestra datos");
 
+// ---- Fase 3a: formularios del docente y lo que NO ven los demás ----
+console.log("\n# Fase 3a: bitácora, notas y ajustes");
+r = await get(teacher.cookie, "/dashboard");
+check(r.text.includes("Bitácora de actividades") && r.text.includes("Agregar a la bitácora"), "docente ve la bitácora y su formulario");
+r = await get(teacher.cookie, `/dashboard/ninos/${kidA}`);
+check(r.text.includes("Ajustes y cambios") && r.text.includes("Registrar el cambio"), "docente ve los ajustes y puede registrar un cambio");
+r = await get(teacher.cookie, `/dashboard/eventos/${evA}`);
+check(r.text.includes("Nota del docente") && r.text.includes("Fue una pulsación accidental"), "docente ve la nota y la marca de pulsación accidental");
+r = await get(p1.cookie, `/dashboard/eventos/${evA}`);
+check(!r.text.includes("Nota del docente") && !r.text.includes("Fue una pulsación accidental"), "el tutor NO ve la nota del docente ni la marca");
+r = await get(p1.cookie, `/dashboard/ninos/${kidA}`);
+check(r.text.includes("Ajustes y cambios") && !r.text.includes("Registrar el cambio"), "el tutor ve los ajustes pero no el formulario para registrarlos");
+r = await get(admin.cookie, `/dashboard/salones/${roomId}`);
+check(r.text.includes("Bitácora de actividades") && !r.text.includes("Agregar a la bitácora"), "el admin ve la bitácora pero no puede escribir en ella");
+r = await get(admin.cookie, `/dashboard/ninos/${kidA}`);
+check(!r.text.includes("Registrar el cambio"), "el admin no ve el formulario de ajustes");
+
 // ---- Aislamiento entre tutores ----
 console.log("\n# Aislamiento (padre2 intenta ver lo de padre1)");
 r = await get(p2.cookie, `/dashboard/ninos/${kidA}`);

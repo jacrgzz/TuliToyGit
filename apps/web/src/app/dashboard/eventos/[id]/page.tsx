@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { requireUser } from "@/features/auth/queries";
+import { getViewerRole, requireUser } from "@/features/auth/queries";
+import { EventNoteForm } from "@/features/notes/components/EventNoteForm";
+import { getEventNote } from "@/features/notes/queries";
 import { getChild } from "@/features/children/queries";
 import { EventReadingsTable } from "@/features/events/components/EventReadingsTable";
 import { getEventReadings, getEventSummary } from "@/features/events/queries";
@@ -21,9 +23,11 @@ async function EventView({ params }: { params: PageProps<"/dashboard/eventos/[id
   const summary = await getEventSummary(eventId);
   if (!summary || summary.occurred_at === null || summary.child_id === null) notFound();
 
-  const [child, readings] = await Promise.all([
+  const [child, readings, role, note] = await Promise.all([
     getChild(summary.child_id),
     getEventReadings(eventId),
+    getViewerRole(),
+    getEventNote(eventId),
   ]);
 
   const peak = summary.noise_peak_max;
@@ -40,6 +44,11 @@ async function EventView({ params }: { params: PageProps<"/dashboard/eventos/[id
         <h1 className="mt-1 text-2xl font-bold">
           Momento del {formatDateTime(summary.occurred_at)}
         </h1>
+        {summary.accidental && (
+          <p className="text-sm font-medium text-muted">
+            Marcado como accidental: no cuenta en los análisis ni en las gráficas.
+          </p>
+        )}
         {summary.ts_source !== "ntp" && (
           <p className="text-sm text-attention">
             La hora de este momento es aproximada (el juguete no tenía la hora sincronizada).
@@ -87,6 +96,21 @@ async function EventView({ params }: { params: PageProps<"/dashboard/eventos/[id
         <h2 className="mb-3 text-lg font-semibold">Lecturas de la caja ({readings.length})</h2>
         <EventReadingsTable rows={readings} />
       </section>
+
+      {role === "teacher" && (
+        <EventNoteForm
+          eventId={eventId}
+          initialNote={note?.note ?? ""}
+          initialAccidental={note?.accidental ?? false}
+          hasNote={!!note}
+        />
+      )}
+      {role === "admin" && note && (
+        <div className="rounded-xl border border-border bg-white p-4 text-sm">
+          <h2 className="text-lg font-semibold">Nota del docente</h2>
+          <p className="mt-1 whitespace-pre-wrap">{note.note || "(sin texto)"}</p>
+        </div>
+      )}
 
       <p className="text-xs text-muted">
         Estas son coincidencias entre el ambiente y el momento registrado; no indican la causa.

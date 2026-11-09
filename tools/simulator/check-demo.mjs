@@ -2,9 +2,11 @@
 // Lee los ids de las acciones del manifiesto de Next (solo existe con npm run dev).
 // Requiere: npm run dev, DEMO_MODE=true y datos provisionados. Corre: npm run check-demo
 import { readFileSync } from "node:fs";
+import { startCleanup } from "./cleanup.mjs";
 import { createServerClient } from "../../apps/web/node_modules/@supabase/ssr/dist/main/index.js";
 
 const base = process.env.APP_URL ?? "http://localhost:3000";
+const cleanup = startCleanup();
 let failures = 0;
 const check = (ok, label) => {
   console.log(`${ok ? "✔" : "✘"} ${label}`);
@@ -76,5 +78,6 @@ console.log("\n# Sin sesión");
 const anon = await fetch(base + "/demo", { redirect: "manual" });
 check(anon.status === 307 && anon.headers.get("location")?.endsWith("/login"), "/demo sin sesión redirige a /login");
 
+await cleanup();
 console.log(failures === 0 ? "\n✔ Modo demo correcto" : `\n✘ ${failures} verificación(es) fallaron`);
 process.exit(failures === 0 ? 0 : 1);

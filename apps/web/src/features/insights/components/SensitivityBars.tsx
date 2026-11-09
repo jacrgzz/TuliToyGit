@@ -14,17 +14,25 @@ const EVIDENCE_CLASS: Record<Evidence, string> = {
 
 const pct = (n: number | null) => Math.max(0, Math.min(100, Number(n ?? 0)));
 
-export function SensitivityBars({ rows }: { rows: ConditionLiftRow[] }) {
+export function SensitivityBars({
+  rows,
+  eventsLabel = "Antes de sus momentos (5 min)",
+  baselineLabel = "Resto del tiempo en el salón",
+}: {
+  rows: ConditionLiftRow[];
+  eventsLabel?: string;
+  baselineLabel?: string;
+}) {
   const sorted = [...rows].sort((a, b) => effectiveLift(b) - effectiveLift(a));
 
   return (
     <div>
       <div className="mb-3 flex flex-wrap gap-4 text-xs text-muted" aria-hidden="true">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2.5 w-4 rounded-sm bg-series-1" /> Antes de sus momentos (5 min)
+          <span className="inline-block h-2.5 w-4 rounded-sm bg-series-1" /> {eventsLabel}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2.5 w-4 rounded-sm bg-chart-reference" /> Resto del tiempo en el salón
+          <span className="inline-block h-2.5 w-4 rounded-sm bg-chart-reference" /> {baselineLabel}
         </span>
         <span className="flex items-center gap-1.5">
           <span className="inline-block h-0.5 w-4 bg-foreground" /> Margen probable (95 %)

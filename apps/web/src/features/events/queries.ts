@@ -6,7 +6,7 @@ export async function listEventSummaries(childId: string, limit = 20) {
   const { data, error } = await supabase
     .from("event_summary")
     .select(
-      "event_id, occurred_at, ts_source, readings_count, noise_avg, noise_peak_max, light_min, light_max, temp_avg, humidity_avg",
+      "event_id, occurred_at, ts_source, readings_count, noise_avg, noise_peak_max, light_min, light_max, temp_avg, humidity_avg, accidental",
     )
     .eq("child_id", childId)
     .order("occurred_at", { ascending: false })
@@ -46,14 +46,17 @@ export async function getEventReadings(eventId: number) {
 export async function countRecentEventsByChild(hours = 24) {
   const supabase = await createClient();
   const since = new Date(Date.now() - hours * 3600 * 1000).toISOString();
+  // event_summary (no toy_events) para que las pulsaciones accidentales no cuenten.
   const { data, error } = await supabase
-    .from("toy_events")
-    .select("child_id, occurred_at")
+    .from("event_summary")
+    .select("child_id, occurred_at, accidental")
+    .eq("accidental", false)
     .gte("occurred_at", since)
     .order("occurred_at", { ascending: false });
   if (error) throw new Error(`No se pudieron contar los eventos: ${error.message}`);
   const map = new Map<string, { count: number; last: string }>();
   for (const e of data) {
+    if (!e.child_id || !e.occurred_at) continue;
     const cur = map.get(e.child_id);
     map.set(e.child_id, { count: (cur?.count ?? 0) + 1, last: cur?.last ?? e.occurred_at });
   }

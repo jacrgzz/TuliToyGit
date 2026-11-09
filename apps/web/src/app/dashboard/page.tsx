@@ -61,6 +61,7 @@ async function DashboardHome({ searchParams }: { searchParams: PageProps<"/dashb
       title="Panel del salón"
       days={days}
       day={day}
+      canEdit={role === "teacher"}
       basePath="/dashboard"
     />
   );

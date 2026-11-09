@@ -1,6 +1,7 @@
 // Prueba HTTP de /api/ingest (el contrato v1 con el servidor real), con verificaciones que FALLAN.
 // Requiere: npm run dev, npm run provision. Corre: npm run check-ingest
 import { createClient } from "@supabase/supabase-js";
+import { startCleanup } from "./cleanup.mjs";
 
 const base = process.env.APP_URL ?? "http://localhost:3000";
 const { TOY_DEVICE_TOKEN: TOY, BOX_DEVICE_TOKEN: BOX, NEXT_PUBLIC_SUPABASE_URL: url, SUPABASE_SERVICE_ROLE_KEY: key } = process.env;
@@ -9,6 +10,7 @@ if (!TOY || !BOX || !url || !key) {
   process.exit(1);
 }
 const admin = createClient(url, key, { auth: { persistSession: false } });
+const cleanup = startCleanup();
 
 let failures = 0;
 const check = (ok, label) => {
@@ -81,5 +83,6 @@ const { data: log } = await admin.from("ingest_log").select("outcome, status").o
 const outcomes = new Set((log ?? []).map((l) => l.outcome));
 for (const o of ["ok", "invalid", "unauthorized", "duplicate"]) check(outcomes.has(o), `ingest_log registró un resultado "${o}"`);
 
+await cleanup();
 console.log(failures === 0 ? "\n✔ /api/ingest cumple el contrato" : `\n✘ ${failures} verificación(es) fallaron`);
 process.exit(failures === 0 ? 0 : 1);

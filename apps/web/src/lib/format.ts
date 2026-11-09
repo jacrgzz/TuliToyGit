@@ -12,6 +12,17 @@ export function formatDateTime(iso: string) {
   });
 }
 
+// Fecha y hora sin segundos (para lo que escribe el docente: bitácora, ajustes).
+export function formatDateTimeShort(iso: string) {
+  return new Date(iso).toLocaleString("es-MX", {
+    timeZone: TZ,
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString("es-MX", {
     timeZone: TZ,
