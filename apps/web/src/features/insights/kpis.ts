@@ -28,13 +28,13 @@ export type Kpi = {
 
 const NO_DATA = "Aún sin datos suficientes hoy.";
 
-function addDays(day: string, n: number) {
+export function addDays(day: string, n: number) {
   const d = new Date(`${day}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() + n);
   return d.toISOString().slice(0, 10);
 }
 
-function median(values: number[]) {
+export function median(values: number[]) {
   const s = [...values].sort((a, b) => a - b);
   const m = Math.floor(s.length / 2);
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;

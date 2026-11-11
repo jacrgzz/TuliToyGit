@@ -78,4 +78,18 @@ export const CHILD_TABS = [
   { slug: "ajustes", label: "Ajustes" },
   { slug: "reporte", label: "Reporte" },
 ] as const;
-export type ChildTab = (typeof CHILD_TABS)[number]["slug"];
+export type ChildTab = (typeof CHILD_TABS)[number]["slug"] | "semana";
+
+// La familia ve una versión más sencilla: "Hoy" (la ruta resumen), "Su semana", sus momentos y el
+// reporte. El análisis técnico (perfil y horarios) sigue disponible desde "Su semana".
+// Ver docs/vista-tutor.md.
+export const FAMILY_TABS: { slug: ChildTab; label: string }[] = [
+  { slug: "resumen", label: "Hoy" },
+  { slug: "semana", label: "Su semana" },
+  { slug: "momentos", label: "Momentos" },
+  { slug: "reporte", label: "Reporte" },
+];
+
+export function childTabsFor(role: ViewerRole): { slug: ChildTab; label: string }[] {
+  return role === "guardian" ? FAMILY_TABS : [...CHILD_TABS];
+}

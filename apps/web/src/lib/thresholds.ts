@@ -51,6 +51,10 @@ export const KPI = {
 // C7: batería del juguete.
 export const BATTERY = { low: 20 } as const;
 
+// Vista de la familia (tutor). Provisionales, como el resto. "Salón tranquilo": ruido alto en el 10 %
+// del tiempo o menos; "buena parte del día": más del 30 %. Ver docs/vista-tutor.md.
+export const FAMILY = { quietRedPct: 10, busyRedPct: 30 } as const;
+
 // Parámetros de las funciones SQL de análisis (child_condition_lift, classroom_profiles).
 export const LIFT_PARAMS = {
   p_noise: PATTERNS.noiseHigh,

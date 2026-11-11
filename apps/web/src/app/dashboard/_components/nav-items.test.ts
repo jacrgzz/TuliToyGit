@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CHILD_TABS, isActive, navItemsFor } from "./nav-items";
+import { CHILD_TABS, childTabsFor, isActive, navItemsFor } from "./nav-items";
 
 describe("navItemsFor", () => {
   it("el docente ve las 9 secciones", () => {
@@ -68,5 +68,17 @@ describe("isActive", () => {
 describe("CHILD_TABS", () => {
   it("tiene las 6 pestañas, con resumen primero", () => {
     expect(CHILD_TABS.map((t) => t.slug)).toEqual(["resumen", "perfil", "horarios", "momentos", "ajustes", "reporte"]);
+  });
+});
+
+describe("childTabsFor", () => {
+  it("la familia ve Hoy, Su semana, Momentos y Reporte", () => {
+    expect(childTabsFor("guardian").map((t) => t.label)).toEqual(["Hoy", "Su semana", "Momentos", "Reporte"]);
+    expect(childTabsFor("guardian")[0].slug).toBe("resumen");
+  });
+  it("el docente y el admin mantienen las 6 pestañas", () => {
+    for (const role of ["teacher", "admin"] as const) {
+      expect(childTabsFor(role).map((t) => t.slug)).toEqual(CHILD_TABS.map((t) => t.slug));
+    }
   });
 });

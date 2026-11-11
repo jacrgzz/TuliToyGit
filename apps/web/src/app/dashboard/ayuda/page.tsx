@@ -1,10 +1,65 @@
+import { Suspense } from "react";
+import { getViewerRole } from "@/features/auth/queries";
+import { meetingQuestions } from "@/features/insights/family";
 import { KPI, PATTERNS, THRESHOLDS } from "@/lib/thresholds";
+
+// Para familias (solo el tutor la ve arriba de todo). Consejos generales de acompañamiento, sin
+// lenguaje clínico. Ver docs/vista-tutor.md.
+async function FamilyHelp() {
+  if ((await getViewerRole()) !== "guardian") return null;
+  return (
+    <section id="familias" className="space-y-3 scroll-mt-4 rounded-xl border border-border bg-white p-4">
+      <h2 className="text-lg font-semibold">Para familias</h2>
+      <div className="space-y-1">
+        <h3 className="font-semibold">Usar el juguete no es algo malo</h3>
+        <p>
+          Cada vez que tu hijo aprieta su juguete se guarda un momento. Buscar el juguete puede ser su forma de acomodarse a lo que pasa
+          a su alrededor. Tuli solo ayuda a ver en qué momentos lo buscó y cómo estaba el salón.
+        </p>
+      </div>
+      <div className="space-y-1">
+        <h3 className="font-semibold">Qué no significa</h3>
+        <p>
+          Tuli no mide emociones ni da diagnósticos, y nunca compara a tu hijo con otros niños: siempre lo compara con sus propios días.
+          Un día con más momentos no es un mal día.
+        </p>
+      </div>
+      <div className="space-y-1">
+        <h3 className="font-semibold">Cómo platicarlo en casa</h3>
+        <ul className="list-disc space-y-1 pl-5">
+          <li>Pregunta con curiosidad y sin presionar; está bien si no quiere hablar de eso.</li>
+          <li>No uses los datos como premio o castigo.</li>
+          <li>Fíjate también en lo que sí le funciona: los días y las horas en que estuvo a gusto.</li>
+        </ul>
+      </div>
+      <div className="space-y-1">
+        <h3 className="font-semibold">Para la reunión con su maestra o maestro</h3>
+        <ul className="list-disc space-y-1 pl-5">
+          {meetingQuestions(null).map((q) => (
+            <li key={q}>{q}</li>
+          ))}
+          <li>Lleva el reporte de Tuli (pestaña «Reporte»): se puede imprimir o guardar como PDF.</li>
+        </ul>
+      </div>
+      <div className="space-y-1">
+        <h3 className="font-semibold">Su juguete en casa</h3>
+        <p>
+          Si Tuli dice que le queda poca batería, conéctalo con su cable USB por la noche. Antes de ir a la escuela, revisa que esté
+          encendido con su interruptor. El juguete solo envía señal cuando se usa, así que un rato sin señal puede ser normal.
+        </p>
+      </div>
+    </section>
+  );
+}
 
 // Página estática: explica cómo leer los datos. Mismo lenguaje que el resto: coincidencias, nunca causas.
 export default function HelpPage() {
   return (
     <div className="max-w-2xl space-y-6">
       <h1 className="text-2xl font-bold">Cómo leer los datos</h1>
+      <Suspense fallback={null}>
+        <FamilyHelp />
+      </Suspense>
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">Qué es un momento</h2>
         <p>

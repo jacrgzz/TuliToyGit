@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { getViewerRole } from "@/features/auth/queries";
 import { listEventSummaries } from "@/features/events/queries";
 import { EventList } from "@/features/events/components/EventList";
 import { PeriodSelector } from "@/features/insights/components/PeriodSelector";
@@ -8,12 +9,15 @@ import { getConditionLift } from "@/features/insights/queries";
 import { ConditionsPanel } from "@/features/readings/components/ConditionsPanel";
 import { getLatestReading } from "@/features/readings/queries";
 import { parsePeriod } from "@/lib/period";
+import { FamilyToday } from "../_family";
 import { loadChild } from "../_lib";
 
 type Props = PageProps<"/dashboard/ninos/[id]/resumen">;
 
 async function Summary({ params, searchParams }: { params: Props["params"]; searchParams: Props["searchParams"] }) {
-  const [child, sp] = await Promise.all([loadChild(params), searchParams]);
+  const [child, sp, role] = await Promise.all([loadChild(params), searchParams, getViewerRole()]);
+  // La familia ve su propia versión de esta pestaña ("Hoy"); el docente y el admin, el resumen técnico.
+  if (role === "guardian") return <FamilyToday child={child} />;
   const days = parsePeriod(sp.dias);
   const [reading, lift, recent] = await Promise.all([
     getLatestReading(child.classroom_id),
