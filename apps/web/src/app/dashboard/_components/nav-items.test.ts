@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { CHILD_TABS, isActive, navItemsFor } from "./nav-items";
+import { CHILD_TABS, childTabsFor, isActive, navItemsFor } from "./nav-items";
 
 describe("navItemsFor", () => {
-  it("el docente ve las 8 secciones", () => {
+  it("el docente ve las 9 secciones", () => {
     expect(navItemsFor("teacher").map((i) => i.href)).toEqual([
       "/dashboard",
       "/dashboard/salon",
@@ -11,8 +11,17 @@ describe("navItemsFor", () => {
       "/dashboard/bitacora",
       "/dashboard/reportes",
       "/dashboard/dispositivos",
+      "/pantalla",
       "/dashboard/ayuda",
     ]);
+  });
+
+  it("la pantalla del salón es solo del docente y se abre en otra pestaña", () => {
+    const screen = navItemsFor("teacher").find((i) => i.href === "/pantalla");
+    expect(screen?.newTab).toBe(true);
+    for (const role of ["guardian", "admin"] as const) {
+      expect(navItemsFor(role).some((i) => i.href === "/pantalla")).toBe(false);
+    }
   });
 
   it("el tutor NO ve secciones del docente (salón, bitácora, momentos del salón, dispositivos)", () => {
@@ -22,11 +31,11 @@ describe("navItemsFor", () => {
     }
   });
 
-  it("ninguna ruta se repite y todas cuelgan de /dashboard", () => {
+  it("ninguna ruta se repite y todas cuelgan de /dashboard (salvo la pantalla del salón)", () => {
     for (const role of ["teacher", "guardian", "admin"] as const) {
       const hrefs = navItemsFor(role).map((i) => i.href);
       expect(new Set(hrefs).size).toBe(hrefs.length);
-      expect(hrefs.every((h) => h.startsWith("/dashboard"))).toBe(true);
+      expect(hrefs.every((h) => h.startsWith("/dashboard") || h === "/pantalla")).toBe(true);
     }
   });
 
@@ -59,5 +68,17 @@ describe("isActive", () => {
 describe("CHILD_TABS", () => {
   it("tiene las 6 pestañas, con resumen primero", () => {
     expect(CHILD_TABS.map((t) => t.slug)).toEqual(["resumen", "perfil", "horarios", "momentos", "ajustes", "reporte"]);
+  });
+});
+
+describe("childTabsFor", () => {
+  it("la familia ve Hoy, Su semana, Momentos y Reporte", () => {
+    expect(childTabsFor("guardian").map((t) => t.label)).toEqual(["Hoy", "Su semana", "Momentos", "Reporte"]);
+    expect(childTabsFor("guardian")[0].slug).toBe("resumen");
+  });
+  it("el docente y el admin mantienen las 6 pestañas", () => {
+    for (const role of ["teacher", "admin"] as const) {
+      expect(childTabsFor(role).map((t) => t.slug)).toEqual(CHILD_TABS.map((t) => t.slug));
+    }
   });
 });

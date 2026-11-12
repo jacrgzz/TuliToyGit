@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { ALERT, LIFT_PARAMS, PATTERNS } from "@/lib/thresholds";
+import { ALERT, KPI, LIFT_PARAMS, PATTERNS, THRESHOLDS } from "@/lib/thresholds";
+import type { DailyStat } from "./kpis";
 
 // Análisis calculados en SQL (migración perfiles_docente); aquí solo se consultan.
 // RLS: si el usuario no puede ver al niño o al salón, recibe ceros o listas vacías.
@@ -205,3 +206,31 @@ export async function getLiveNoise(classroomId: string) {
 }
 
 export type ConditionComboRow = Awaited<ReturnType<typeof getConditionCombo>>[number];
+
+// ---------------------------------------------------------------------------
+// Indicadores de "Hoy" y resumen de la semana (migración kpis_dia_salon)
+// ---------------------------------------------------------------------------
+
+// Una fila por día (hora de México) con lecturas o momentos; incluye lo necesario para "lo habitual".
+export async function getClassroomDailyStats(classroomId: string, days: number = KPI.baselineDays + 7): Promise<DailyStat[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("classroom_daily_stats", {
+    p_classroom: classroomId,
+    p_days: days,
+    p_noise: PATTERNS.noiseHigh,
+    p_temp_low: THRESHOLDS.temp.low,
+    p_temp_high: THRESHOLDS.temp.attentionHigh,
+    p_light_ok: KPI.lightOk,
+  });
+  if (error) throw new Error(`No se pudieron calcular los indicadores del día: ${error.message}`);
+  const num = (v: number | null) => (v === null ? null : Number(v));
+  return data.map((r) => ({
+    day: r.day,
+    isodow: Number(r.isodow),
+    readings: Number(r.readings),
+    red_pct: num(r.red_pct),
+    temp_ok_pct: num(r.temp_ok_pct),
+    light_ok_pct: num(r.light_ok_pct),
+    events: Number(r.events),
+  }));
+}

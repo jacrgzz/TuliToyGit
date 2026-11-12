@@ -9,7 +9,7 @@ import { INTERVENTION_CAVEAT } from "../compare";
 // `summaries` llega ya calculado desde el servidor (frase por ajuste).
 type Item = { id: string; title: string; started_on: string; note: string; summary: string };
 
-const field = "mt-1 w-full rounded-lg border border-border bg-white px-2 py-1.5";
+const field = "mt-1 w-full rounded-xl border border-border bg-white px-2 py-1.5";
 
 export function Interventions({ childId, items, canEdit }: { childId: string; items: Item[]; canEdit: boolean }) {
   const router = useRouter();
@@ -49,7 +49,7 @@ export function Interventions({ childId, items, canEdit }: { childId: string; it
             e.preventDefault();
             submit(e.currentTarget);
           }}
-          className="grid gap-3 rounded-xl border border-border bg-white p-4 sm:grid-cols-2"
+          className="grid gap-3 card sm:grid-cols-2"
         >
           <label className="text-sm">
             ¿Qué cambió?
@@ -81,7 +81,7 @@ export function Interventions({ childId, items, canEdit }: { childId: string; it
       )}
 
       {items.length === 0 ? (
-        <p className="rounded-xl border border-border bg-white p-4 text-muted">
+        <p className="card text-muted">
           {canEdit
             ? "Cuando hagas un cambio (de lugar, de rutina, un apoyo nuevo), regístralo aquí para comparar los momentos antes y después."
             : "Todavía no hay cambios registrados."}
@@ -89,7 +89,7 @@ export function Interventions({ childId, items, canEdit }: { childId: string; it
       ) : (
         <ul className="space-y-3">
           {items.map((i) => (
-            <li key={i.id} className="rounded-xl border border-border bg-white p-4">
+            <li key={i.id} className="card">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
                   <p className="font-medium">{i.title}</p>
@@ -100,7 +100,7 @@ export function Interventions({ childId, items, canEdit }: { childId: string; it
                     type="button"
                     onClick={() => remove(i.id)}
                     disabled={pending}
-                    className="rounded-lg border border-border px-2 py-1 text-xs hover:bg-gray-50 disabled:opacity-60"
+                    className="rounded-xl border border-border px-2 py-1 text-xs hover:bg-tint disabled:opacity-60"
                     aria-label={`Quitar ${i.title}`}
                   >
                     Quitar

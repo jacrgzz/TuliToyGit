@@ -6,7 +6,7 @@ import type { ConditionComboRow } from "../queries";
 // caso frente al porcentaje del tiempo del salón. Los valores van en texto.
 export function ComboTable({ rows }: { rows: ConditionComboRow[] }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-border">
+    <div className="overflow-x-auto rounded-xl border border-border">
       <table className="w-full text-left text-sm">
         <thead className="border-b border-border text-muted">
           <tr>

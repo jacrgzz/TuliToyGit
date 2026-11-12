@@ -122,6 +122,23 @@ const otherDayEv = (await p2.rpc("classroom_day_events", { p_classroom: roomOfA,
 check(otherDayEv.every((e) => e.display_name !== "Alumno A"), "padre2 no ve los momentos de Alumno A en la línea del día del salón");
 const teacherHeat = (await teacher.rpc("classroom_noise_heatmap", { p_classroom: roomOfA, p_days: 30, p_noise: 75 })).data ?? [];
 check(teacherHeat.length > 0, "docente obtiene el ruido por hora de su salón");
+// Indicadores de "Hoy" (classroom_daily_stats)
+const DS = { p_noise: 75, p_temp_low: 18, p_temp_high: 26, p_light_ok: 300 };
+const statsT = (await teacher.rpc("classroom_daily_stats", { p_classroom: roomOfA, p_days: 35, ...DS })).data ?? [];
+check(statsT.length > 0 && statsT.some((d) => d.readings > 0), `docente obtiene los indicadores diarios de su salón (${statsT.length} días)`);
+const statsP2 = (await p2.rpc("classroom_daily_stats", { p_classroom: roomOfA, p_days: 35, ...DS })).data ?? [];
+const sum = (rows: { events: number }[]) => rows.reduce((a, d) => a + Number(d.events), 0);
+check(sum(statsP2) < sum(statsT), "padre2 cuenta menos momentos que el docente: solo ve los de su hijo, no los de todo el salón");
+const roomsT = (await teacher.from("classrooms").select("id, name").order("name")).data ?? [];
+const roomBT = roomsT.find((r) => r.name === "Salón demo B (vacío)");
+if (roomBT) {
+  const statsB = (await teacher.rpc("classroom_daily_stats", { p_classroom: roomBT.id, p_days: 35, ...DS })).data ?? [];
+  check(statsB.length === 0, "el salón B (vacío) no tiene indicadores: no se mezclan con los del salón A");
+  const statsBp2 = (await p2.rpc("classroom_daily_stats", { p_classroom: roomBT.id, p_days: 35, ...DS })).data ?? [];
+  check(statsBp2.length === 0, "padre2 no obtiene indicadores de un salón que no es de su hijo");
+}
+const anonStats = await anon.rpc("classroom_daily_stats", { p_classroom: roomOfA, p_days: 35, ...DS });
+check(!!anonStats.error || (anonStats.data ?? []).length === 0, "anon no puede usar classroom_daily_stats");
 const anonHeat = await anon.rpc("child_hourly_heatmap", { p_child: kidAId, p_days: 30 });
 check(!!anonHeat.error || (anonHeat.data ?? []).length === 0, "anon no puede usar las funciones de la Fase 2");
 

@@ -24,22 +24,30 @@ export type ProfileForAlert = {
 
 const NOISE_CONDITIONS = ["ruido_pico", "ruido_sostenido"];
 
+// Perfil con una coincidencia notable: evidencia media o alta (nunca "insuficiente").
+function hasNotableEvidence(p: ProfileForAlert): boolean {
+  if (!p.top_condition) return false;
+  const ev = evidenceFor({
+    condition: p.top_condition,
+    events_total: Number(p.top_events_total ?? 0),
+    events_with: Number(p.top_events_with ?? 0),
+    event_pct: p.top_event_pct,
+    baseline_pct: p.top_baseline_pct,
+    lift: p.top_lift,
+    wilson_low: p.top_wilson_low,
+  });
+  return ev === "alta" || ev === "media";
+}
+
+// Niños con una coincidencia notable de cualquier condición (resumen de la semana).
+export function notableNames(profiles: ProfileForAlert[]): string[] {
+  return profiles.filter(hasNotableEvidence).map((p) => p.display_name);
+}
+
 // Niños cuyos momentos coinciden con ruido alto con evidencia media o alta.
 export function noiseSensitiveNames(profiles: ProfileForAlert[]): string[] {
   return profiles
-    .filter((p) => {
-      if (!p.top_condition || !NOISE_CONDITIONS.includes(p.top_condition)) return false;
-      const ev = evidenceFor({
-        condition: p.top_condition,
-        events_total: Number(p.top_events_total ?? 0),
-        events_with: Number(p.top_events_with ?? 0),
-        event_pct: p.top_event_pct,
-        baseline_pct: p.top_baseline_pct,
-        lift: p.top_lift,
-        wilson_low: p.top_wilson_low,
-      });
-      return ev === "alta" || ev === "media";
-    })
+    .filter((p) => p.top_condition !== null && NOISE_CONDITIONS.includes(p.top_condition) && hasNotableEvidence(p))
     .map((p) => p.display_name);
 }
 

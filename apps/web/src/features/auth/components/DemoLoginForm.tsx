@@ -18,7 +18,7 @@ export function DemoLoginForm() {
           type="email"
           required
           placeholder="padre1@tuli.test"
-          className="mt-1 w-full rounded-lg border border-border bg-white px-3 py-2"
+          className="mt-1 w-full rounded-xl border border-border bg-white px-3 py-2"
         />
       </label>
       <label className="block text-sm">
@@ -27,7 +27,7 @@ export function DemoLoginForm() {
           name="password"
           type="password"
           required
-          className="mt-1 w-full rounded-lg border border-border bg-white px-3 py-2"
+          className="mt-1 w-full rounded-xl border border-border bg-white px-3 py-2"
         />
       </label>
       <button

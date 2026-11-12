@@ -42,6 +42,27 @@ Estado: **todas las fases están implementadas**: Fase 1 (A1, A2, A3, A9, B4, C1
 - **C4 Nota y pulsación accidental** (`event_notes`, una por momento): la nota solo la ven los **docentes del salón y el admin** (puede tener observaciones del aula). Una pulsación marcada como accidental **sale de todos los análisis para todos los roles por igual**, vía `accidental_event_ids()` (security definer que solo devuelve ids); el tutor ve la marca pero no la nota. La lista de momentos la muestra atenuada.
 - **C5 Antes y después** (`interventions` + `child_intervention_compare`): compara momentos por día en los 14 días hábiles anteriores y posteriores a un cambio, contando solo días **con lecturas de la caja**. Pide 5 días de cada lado. Es un diseño AB descriptivo (como los de caso único del WWC): se dice siempre que **no demuestra que el ajuste sea la causa**, y las frases no usan "mejoría", "efecto" ni "funcionó".
 
+## Indicadores de Hoy, resumen de la semana y pantalla del salón
+
+Se agregan al inicio de "Hoy" (docente). Todos son **coincidencias y referencias, nunca un juicio sobre un niño ni sobre el día**. Con menos de 30 lecturas en el día, un indicador dice "aún sin datos suficientes" y no muestra número. Los umbrales viven en `lib/thresholds.ts` (`KPI`) y son **provisionales**.
+
+- **Datos:** una sola función SQL, `classroom_daily_stats` (migración `kpis_dia_salon`, `security invoker`): una fila por día (hora de México) con el % de lecturas con ruido alto, con temperatura en rango y con luz suficiente, y el número de momentos sin pulsaciones accidentales. Un tutor sin acceso al salón recibe 0 filas. La lógica de los indicadores es pura y probada (`features/insights/kpis.ts`).
+- **Resumen de la semana** (`weekSummary`): lunes a hoy frente al **mismo tramo** de la semana anterior, para que la comparación sea justa. Dice números, no "mejor" ni "peor".
+- **Selector de salón:** cookie `tuli_salon` (httpOnly), validada en el servidor contra los salones que RLS deja ver; si no es válida se usa el primero. Solo aparece con 2 salones o más.
+- **Pantalla del salón** (`/pantalla`, fuera del panel): semáforo grande de ruido con texto, hora, temperatura y luz. **No muestra nada de ningún niño.** Si la última lectura tiene más de 2 minutos, dice "Sin datos recientes" en gris en vez de un color engañoso. Pide pantalla completa y evita que la tablet se apague (Wake Lock, si el navegador lo permite).
+
+| Indicador | Cálculo | Referencia que se muestra | Evidencia |
+| --- | --- | --- | --- |
+| **Momentos hoy** | Momentos de hoy frente al rango y la mediana de los días escolares anteriores del salón (hasta 28 días; mínimo 3 días) | "Lo habitual en este salón: 2 a 6" | En diseños de caso único se juzga el **nivel, la tendencia y la variabilidad** frente a la propia línea base (WWC, Kratochwill et al., 2010); por eso se compara con el salón y no con una norma externa. Registro por evento en el momento: EMA (Shiffman et al., 2008) |
+| **Tiempo con ruido alto** | % de lecturas de hoy con pico ≥ 75 dB (misma definición que la zona roja por día) | Promedio de los días anteriores | El ruido **dentro** del salón, sobre todo el de los propios alumnos, afecta más los resultados en pruebas que el exterior, y los alumnos con necesidades educativas especiales se ven más afectados (Shield y Dockrell, 2008). En un estudio con un indicador visual de ruido, el tiempo sobre 70 dBA bajó del 33 % al 24 % (efecto modesto; evidencia limitada) |
+| **Temperatura en rango cómodo** | % de lecturas entre 18 y 26 °C | "Más fresco es mejor; por debajo de unos 22 °C" | Metaanálisis de 18 estudios: el desempeño en tareas escolares sube en promedio un 20 % al bajar de 30 a 20 °C y el óptimo está por debajo de 22 °C, **en climas templados** (Wargocki et al., 2019). La aclimatación puede subir el óptimo (Porras-Salazar et al., 2018), por eso es provisional para México |
+| **Luz suficiente** | % de lecturas con ≥ 300 lux | "300 a 500 lux en las mesas" | EN 12464-1: 300 lux para salones de primaria y 500 para lectura y escritura exigentes. La caja mide donde está colocada, no en cada mesa |
+| **Cobertura de datos** | Juguetes con señal en las últimas 24 h entre los del salón, y si la caja envió datos | "80 % o más" | En registros momentáneos, los datos faltantes sesgan las conclusiones cuando no faltan al azar; los metaanálisis citan el 80 % como cumplimiento esperado. Evita leer "cero momentos" cuando el juguete estaba apagado |
+
+Por qué **no** se usa el límite de 35 dB de la OMS para salones: aplica a salones **vacíos**; con alumnos el ruido es naturalmente mayor (por eso el "alto" sigue en 75 dB).
+
+> El estudio del indicador visual de ruido y la norma EN 12464-1 se verificaron solo por resúmenes de terceros: antes de citarlos en un reporte, consultar el original.
+
 ## Catálogo de análisis y gráficas
 
 ### A. Por niño: "perfil de sensibilidad" (lo más importante)
@@ -125,6 +146,7 @@ Idea central: Tuli hace lo que en análisis de conducta se llama una **evaluaci�
 - Touchette et al., 1985: [PMC1308031](https://pmc.ncbi.nlm.nih.gov/articles/PMC1308031/)
 - WWC, diseños de caso único: [ERIC ED510743](https://files.eric.ed.gov/fulltext/ED510743.pdf)
 - Shiffman et al., 2008: [PubMed 18509902](https://pubmed.ncbi.nlm.nih.gov/18509902/)
+- Indicadores de Hoy: Shield y Dockrell, 2008 ([UCL](https://discovery-pp.ucl.ac.uk/1486841/1/Shield2008The_Effects133.pdf)) · indicador visual de ruido, resumen ([scite](https://scite.ai/authors/nadia-woite-QYQXmX)) · Wargocki et al., 2019 ([DTU Orbit](https://orbit.dtu.dk/en/publications/the-relationship-between-classroom-temperature-and-childrens-perf/)) · Porras-Salazar et al., 2018 ([DTU Orbit](https://orbit.dtu.dk/en/publications/reducing-classroom-temperature-in-a-tropical-climate-improved-the/)) · EN 12464-1, resúmenes ([Glamox](https://glamox.com/en/pbs/application-guide/education/classroom-lighting), [Helvar](https://helvar.com/education/lighting-control-for-classrooms/)) · cumplimiento en EMA ([PMC6492133](https://pmc.ncbi.nlm.nih.gov/articles/PMC6492133), [JMIR 2021](https://www.jmir.org/2021/3/e17023)) · OMS, 35 dB en salones vacíos ([WHO](https://www.who.int/Europe/news-room/fact-sheets/item/noise))
 - Cleveland y McGill, 1984: [resumen Cornell](https://info3312.infosci.cornell.edu/ae/graphical-perception-A.html)
 
 > Nota: varias fuentes se verificaron por su resumen y no por el texto completo. Antes de citarlas en el reporte del curso, revisar el artículo original (DOI incluido donde lo hay).

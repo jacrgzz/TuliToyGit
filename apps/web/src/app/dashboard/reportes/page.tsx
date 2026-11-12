@@ -2,14 +2,14 @@ import { Download, FileText } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { requireUser } from "@/features/auth/queries";
-import { listMyChildren } from "@/features/children/queries";
 import { PeriodSelector } from "@/features/insights/components/PeriodSelector";
 import { parsePeriod } from "@/lib/period";
+import { visibleChildren } from "../_components/room";
 
 async function Reports({ searchParams }: { searchParams: PageProps<"/dashboard/reportes">["searchParams"] }) {
   const [, sp] = await Promise.all([requireUser(), searchParams]);
   const days = parsePeriod(sp.dias);
-  const kids = await listMyChildren();
+  const { kids } = await visibleChildren();
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -20,18 +20,18 @@ async function Reports({ searchParams }: { searchParams: PageProps<"/dashboard/r
         Un reporte por niño para compartir con la familia o con especialistas. Resume coincidencias; no es un diagnóstico.
       </p>
       {kids.length === 0 ? (
-        <p className="rounded-xl border border-border bg-white p-4 text-muted">Todavía no hay niños vinculados a tu cuenta.</p>
+        <p className="card text-muted">Todavía no hay niños vinculados a tu cuenta.</p>
       ) : (
         <ul className="space-y-2">
           {kids.map((k) => (
-            <li key={k.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-white p-4">
+            <li key={k.id} className="flex flex-wrap items-center justify-between gap-3 card">
               <p className="font-semibold">{k.display_name}</p>
               <div className="flex gap-2 text-sm">
-                <Link href={`/dashboard/ninos/${k.id}/reporte?dias=${days}`} className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 font-medium hover:bg-gray-50">
+                <Link href={`/dashboard/ninos/${k.id}/reporte?dias=${days}`} className="inline-flex items-center gap-1.5 rounded-xl border border-border px-3 py-1.5 font-medium hover:bg-tint">
                   <FileText aria-hidden className="h-4 w-4" />
                   Ver reporte
                 </Link>
-                <a href={`/dashboard/ninos/${k.id}/reporte.csv?dias=${days}`} className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 font-medium hover:bg-gray-50">
+                <a href={`/dashboard/ninos/${k.id}/reporte.csv?dias=${days}`} className="inline-flex items-center gap-1.5 rounded-xl border border-border px-3 py-1.5 font-medium hover:bg-tint">
                   <Download aria-hidden className="h-4 w-4" />
                   CSV
                 </a>

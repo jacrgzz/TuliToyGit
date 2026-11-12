@@ -25,17 +25,17 @@ async function Schedule({ params, searchParams }: { params: Props["params"]; sea
         <h2 className="text-lg font-semibold">Cuándo ocurren sus momentos</h2>
         <PeriodSelector current={days} basePath={`/dashboard/ninos/${child.id}/horarios`} />
       </div>
-      <div className="rounded-xl border border-border bg-white p-4">
+      <div className="card">
         <h3 className="mb-1 font-semibold">Día y hora</h3>
         <p className="mb-3 text-sm">{timeOfDaySummary(heat)}</p>
         <HourHeatmap cells={heat} unit="momentos" format={(n) => String(Math.round(n))} caption="Momentos por día de la semana y hora" />
       </div>
-      <div className="rounded-xl border border-border bg-white p-4">
+      <div className="card">
         <h3 className="mb-1 font-semibold">Tendencia por día</h3>
         <p className="mb-3 text-sm">{trendSummary(daily)}</p>
         <TrendChart rows={daily} />
       </div>
-      <div className="rounded-xl border border-border bg-white p-4">
+      <div className="card">
         <h3 className="mb-2 font-semibold">Episodios</h3>
         <EpisodesList episodes={episodes} />
       </div>

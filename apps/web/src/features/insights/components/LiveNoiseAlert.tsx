@@ -3,7 +3,7 @@
 export function LiveNoiseAlert({ message }: { message: string | null }) {
   if (!message) return null;
   return (
-    <div role="status" className="rounded-xl border border-attention bg-attention/10 p-4">
+    <div role="status" className="rounded-xl border border-transparent bg-attention/10 p-4">
       <p className="font-semibold">Ruido alto en el salón ahora</p>
       <p className="mt-1 text-sm">{message}</p>
     </div>

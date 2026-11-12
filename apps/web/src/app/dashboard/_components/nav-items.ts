@@ -10,6 +10,7 @@ export type NavIcon =
   | "clipboard"
   | "file"
   | "cpu"
+  | "monitor"
   | "help";
 
 export type NavItem = {
@@ -20,6 +21,8 @@ export type NavItem = {
   icon: NavIcon;
   // Otras rutas que también marcan esta sección como activa (p. ej. el detalle de un momento).
   alsoActiveFor?: string[];
+  // Se abre en otra pestaña y fuera del panel (p. ej. la pantalla del salón, para proyectar).
+  newTab?: boolean;
 };
 
 const HOY: NavItem = { href: "/dashboard", label: "Hoy", icon: "house" };
@@ -37,6 +40,7 @@ export function navItemsFor(role: ViewerRole): NavItem[] {
         { href: "/dashboard/bitacora", label: "Bitácora", icon: "clipboard" },
         { href: "/dashboard/reportes", label: "Reportes", icon: "file" },
         { href: "/dashboard/dispositivos", label: "Dispositivos", icon: "cpu" },
+        { href: "/pantalla", label: "Pantalla del salón", short: "Pantalla", icon: "monitor", newTab: true },
         AYUDA,
       ];
     case "admin":
@@ -74,4 +78,18 @@ export const CHILD_TABS = [
   { slug: "ajustes", label: "Ajustes" },
   { slug: "reporte", label: "Reporte" },
 ] as const;
-export type ChildTab = (typeof CHILD_TABS)[number]["slug"];
+export type ChildTab = (typeof CHILD_TABS)[number]["slug"] | "semana";
+
+// La familia ve una versión más sencilla: "Hoy" (la ruta resumen), "Su semana", sus momentos y el
+// reporte. El análisis técnico (perfil y horarios) sigue disponible desde "Su semana".
+// Ver docs/vista-tutor.md.
+export const FAMILY_TABS: { slug: ChildTab; label: string }[] = [
+  { slug: "resumen", label: "Hoy" },
+  { slug: "semana", label: "Su semana" },
+  { slug: "momentos", label: "Momentos" },
+  { slug: "reporte", label: "Reporte" },
+];
+
+export function childTabsFor(role: ViewerRole): { slug: ChildTab; label: string }[] {
+  return role === "guardian" ? FAMILY_TABS : [...CHILD_TABS];
+}
