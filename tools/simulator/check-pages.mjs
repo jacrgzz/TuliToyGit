@@ -40,6 +40,15 @@ const hasRenderError = (r) => /\\?"digest\\?":\\?"\d+\\?"/.test(r.html) || r.htm
 console.log("\n# Sin sesión");
 let r = await get(null, "/");
 check(r.status === 200 && r.text.includes("no es un dispositivo médico"), "landing carga y trae el aviso de que no es dispositivo médico");
+check(!hasRenderError(r), "landing sin errores de render");
+check(
+  ["que-es", "como-funciona", "familias", "docentes", "privacidad", "preguntas"].every((id) => r.html.includes(`id="${id}"`)),
+  "landing trae todas sus secciones en el HTML del servidor (se leen sin el 3D)",
+);
+check(r.html.includes('href="/login"') && !r.html.includes('href="#"'), "landing enlaza a /login y no tiene enlaces vacíos");
+check(r.text.includes("No graba audio"), "landing dice que la caja no graba audio");
+const model = await fetch(new URL("/models/landing/osito-v2.glb", base));
+check(model.status === 200, "el modelo 3D del osito se sirve");
 r = await get(null, "/login");
 check(r.status === 200 && r.text.includes("Continuar con Google"), "login carga con el botón de Google");
 r = await get(null, "/dashboard");

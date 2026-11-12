@@ -125,6 +125,7 @@ Los momentos de ansiedad de un niño son datos personales sensibles (LFPDPPP, M�
 ## Marca y UI
 
 - Paleta (12 nov 2026): la morada de la landing de Angel en toda la app. Principal `#6341c4`, fondo lila `#efe9fb`, tinta `#2e1650`, tipografía Poppins. Todo en variables de `apps/web/src/app/globals.css` (utilidades `card`, `card-flat`, anillo `lib/ui/Ring.tsx`); ver `docs/estilo-dashboard.md`. El naranja-rojo `#DB4A2B` del PDF de marca queda pendiente de que Jac confirme el cambio.
+- **Landing** (`/`, diseño de Angel Cervantes; `docs/landing.md`): paleta **morada** propia (decisión de Lucy, 11 nov 2026; desde el 12 nov también la app), Poppins, osito 3D con three + React Three Fiber en `features/landing/components/scene` (solo cliente), hero que se vuelve grid con el scroll (`motion.ts`, puro y probado) y pantalla de carga blanca que se abre desde el centro (al primer cuadro, a los 6 s o sin WebGL). Textos y enlaces en `features/landing/content.ts`: nada de tienda, juegos, chat ni registro abierto. Las secciones de abajo son HTML del servidor (se leen sin el 3D y sin JS). `OsitoScene.tsx` desactiva `react-hooks/immutability` a propósito (three.js imperativo).
 - No hay wireframes: proponer UI limpia, amable, con aspecto de juguete y no de dispositivo médico. Mobile first (se usa como PWA).
 - Semáforo de condiciones: verde = tranquilo, amarillo = atención, rojo = nivel alto. Umbrales configurables en un solo archivo (`apps/web/src/lib/thresholds.ts`), no hardcodeados en componentes.
 - Skill `marca-tuli` para tono y reglas de texto.
