@@ -86,10 +86,11 @@ Recorrido completo, de punta a punta:
 5. Vista del docente: condiciones del salón y actividad de los niños.
 6. Panel del admin: dispositivos en línea o sin señal, usuarios, registro de ingesta sin errores inesperados.
 7. **Login con Google real** (cuenta de prueba) y vinculación con `npm run link`.
-8. **Instalar la PWA** en un teléfono (Android: "Instalar app"; iPhone: "Agregar a pantalla de inicio"): abre en `/dashboard` con el ícono de Tuli.
-9. **Micrófono real** en `/demo` (permiso, nivel de ruido, calibración) y comprobar que **no** se sube audio (pestaña de red: solo peticiones con números).
-10. Otro navegador o usuario sin vínculos: ve "Todavía no tienes niños vinculados" y ningún dato.
-11. Con la app desplegada: repetir 2 a 10 contra la URL pública de Vercel.
+8. **Barra lateral** (docente, tutor y admin): en 1280 px, 768 px y 375 px la sección activa se marca, la barra inferior del teléfono abre "Más" (con salir) y la tableta tiene botón de salir; el teclado recorre los enlaces con foco visible; un tutor no ve secciones del docente.
+9. **Instalar la PWA** en un teléfono (Android: "Instalar app"; iPhone: "Agregar a pantalla de inicio"): abre en `/dashboard` con el ícono de Tuli.
+10. **Micrófono real** en `/demo` (permiso, nivel de ruido, calibración) y comprobar que **no** se sube audio (pestaña de red: solo peticiones con números).
+11. Otro navegador o usuario sin vínculos: ve "Todavía no tienes niños vinculados" y ningún dato.
+12. Con la app desplegada: repetir 2 a 11 contra la URL pública de Vercel.
 
 ---
 

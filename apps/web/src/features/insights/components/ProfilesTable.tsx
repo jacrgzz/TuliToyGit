@@ -49,7 +49,7 @@ export function ProfilesTable({ profiles }: { profiles: ClassroomProfile[] }) {
             return (
               <tr key={p.child_id} className="border-b border-border last:border-0">
                 <td className="px-3 py-2">
-                  <Link href={`/dashboard/ninos/${p.child_id}`} className="font-medium text-brand hover:underline">
+                  <Link href={`/dashboard/ninos/${p.child_id}/resumen`} className="font-medium text-brand hover:underline">
                     {p.display_name}
                   </Link>
                 </td>

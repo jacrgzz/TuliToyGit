@@ -23,7 +23,7 @@ export function ChildActivityList({
         return (
           <li key={c.id}>
             <Link
-              href={`/dashboard/ninos/${c.id}`}
+              href={`/dashboard/ninos/${c.id}/resumen`}
               className="block rounded-xl border border-border bg-white p-4 hover:bg-gray-50"
             >
               <p className="text-lg font-semibold">{c.display_name}</p>
