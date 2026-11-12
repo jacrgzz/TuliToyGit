@@ -17,11 +17,11 @@ function Trend({ last, prev }: { last: number; prev: number }) {
 
 export function ProfilesTable({ profiles }: { profiles: ClassroomProfile[] }) {
   if (profiles.length === 0) {
-    return <p className="rounded-xl border border-border bg-white p-4 text-muted">Este salón no tiene niños.</p>;
+    return <p className="card text-muted">Este salón no tiene niños.</p>;
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-white">
+    <div className="overflow-x-auto card-flat">
       <table className="w-full text-left text-sm">
         <thead className="border-b border-border text-muted">
           <tr>

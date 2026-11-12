@@ -75,7 +75,7 @@ export function ScreenControls() {
         <button
           type="button"
           onClick={toggleFullscreen}
-          className="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2 font-medium text-foreground hover:bg-gray-50"
+          className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-3 py-2 font-medium text-foreground hover:bg-tint"
         >
           {full ? <Minimize aria-hidden className="h-4 w-4" /> : <Maximize aria-hidden className="h-4 w-4" />}
           {full ? "Salir de pantalla completa" : "Pantalla completa"}

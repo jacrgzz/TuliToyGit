@@ -97,7 +97,7 @@ export const LEVEL_LABEL: Record<Level, string> = {
 };
 
 export const LEVEL_CLASS: Record<Level, string> = {
-  calm: "border-calm bg-calm/10 text-calm",
-  attention: "border-attention bg-attention/10 text-attention",
-  high: "border-high bg-high/10 text-high",
+  calm: "border-transparent bg-calm/10 text-calm",
+  attention: "border-transparent bg-attention/10 text-attention",
+  high: "border-transparent bg-high/10 text-high",
 };

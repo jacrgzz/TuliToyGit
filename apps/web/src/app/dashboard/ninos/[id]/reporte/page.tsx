@@ -71,7 +71,7 @@ async function Report({ params, searchParams }: { params: Props["params"]; searc
         <div className="flex flex-wrap items-center gap-2">
           <a
             href={`/dashboard/ninos/${child.id}/reporte.csv?dias=${days}`}
-            className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50"
+            className="rounded-xl border border-border bg-white px-4 py-2 text-sm font-medium hover:bg-tint"
           >
             Descargar CSV
           </a>
@@ -115,7 +115,7 @@ async function Report({ params, searchParams }: { params: Props["params"]; searc
         </section>
       )}
 
-      <section className="rounded-lg border border-border p-4 text-sm">
+      <section className="rounded-xl border border-border p-4 text-sm">
         <h2 className="text-base font-semibold">Cómo leer este reporte</h2>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-muted">
           <li>

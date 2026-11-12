@@ -32,8 +32,8 @@ export function ThresholdChart({ bins, thresholdDb }: { bins: Bin[]; thresholdDb
               stroke="var(--chart-grid)"
             />
             <YAxis unit=" %" width={48} tick={{ fill: "var(--muted)", fontSize: 12 }} stroke="var(--chart-grid)" />
-            <Bar dataKey="events" name="Antes de sus momentos" fill="var(--series-1)" radius={[4, 4, 0, 0]} maxBarSize={20} isAnimationActive={false} />
-            <Bar dataKey="baseline" name="Resto del tiempo en el salón" fill="var(--chart-reference)" radius={[4, 4, 0, 0]} maxBarSize={20} isAnimationActive={false} />
+            <Bar dataKey="events" name="Antes de sus momentos" fill="var(--series-1)" radius={[8, 8, 2, 2]} maxBarSize={20} isAnimationActive={false} />
+            <Bar dataKey="baseline" name="Resto del tiempo en el salón" fill="var(--chart-reference)" radius={[8, 8, 2, 2]} maxBarSize={20} isAnimationActive={false} />
             {thresholdDb !== null && (
               <ReferenceLine
                 x={label(thresholdDb)}

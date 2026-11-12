@@ -105,7 +105,7 @@ export async function DaySection({ classroomId, days, day, basePath }: { classro
         <h2 className="text-lg font-semibold">Un día en el salón</h2>
         {dayData && <DaySelector day={dayData.day} days={days} basePath={basePath} />}
       </div>
-      <div className="rounded-xl border border-border bg-white p-4">
+      <div className="card">
         {dayData ? (
           <>
             <p className="mb-3 text-sm text-muted">
@@ -146,7 +146,7 @@ export async function NoiseSection({ classroomId, days }: { classroomId: string;
   return (
     <section className="space-y-4">
       <h2 className="text-lg font-semibold">Ruido del salón</h2>
-      <div className="rounded-xl border border-border bg-white p-4">
+      <div className="card">
         <h3 className="mb-1 font-semibold">Cuándo es más ruidoso</h3>
         <p className="mb-3 text-sm">{noisiestHourSummary(noiseHeat)}</p>
         <HourHeatmap
@@ -156,7 +156,7 @@ export async function NoiseSection({ classroomId, days }: { classroomId: string;
           caption="Porcentaje de lecturas con pico de ruido alto por día de la semana y hora"
         />
       </div>
-      <div className="rounded-xl border border-border bg-white p-4">
+      <div className="card">
         <h3 className="mb-3 font-semibold">Tiempo en zona roja por día</h3>
         <RedTimeChart rows={red} threshold={PATTERNS.noiseHigh} />
       </div>
@@ -170,7 +170,7 @@ export async function KidsSection({ classroomId, heading = "Niños del salón" }
     <section>
       {heading && <h2 className="mb-3 text-lg font-semibold">{heading}</h2>}
       {children.length === 0 ? (
-        <p className="rounded-xl border border-border bg-white p-4 text-muted">Este salón no tiene niños.</p>
+        <p className="card text-muted">Este salón no tiene niños.</p>
       ) : (
         <ChildActivityList kids={children} activity={activity} extra={(id) => <ToyStatus toy={toys.get(id)} />} />
       )}

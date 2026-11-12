@@ -8,7 +8,7 @@ import { KPI, PATTERNS, THRESHOLDS } from "@/lib/thresholds";
 async function FamilyHelp() {
   if ((await getViewerRole()) !== "guardian") return null;
   return (
-    <section id="familias" className="space-y-3 scroll-mt-4 rounded-xl border border-border bg-white p-4">
+    <section id="familias" className="space-y-3 scroll-mt-4 card">
       <h2 className="text-lg font-semibold">Para familias</h2>
       <div className="space-y-1">
         <h3 className="font-semibold">Usar el juguete no es algo malo</h3>

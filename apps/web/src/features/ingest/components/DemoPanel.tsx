@@ -111,7 +111,7 @@ export function DemoPanel() {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-xl border border-border bg-white p-4">
+      <section className="card">
         <h2 className="text-lg font-semibold">Juguete virtual</h2>
         <p className="mt-1 text-sm text-muted">
           Cada toque registra un momento, igual que el juguete real.
@@ -131,7 +131,7 @@ export function DemoPanel() {
         )}
       </section>
 
-      <section className="rounded-xl border border-border bg-white p-4">
+      <section className="card">
         <h2 className="text-lg font-semibold">Caja virtual</h2>
         <p className="mt-1 text-sm text-muted">
           Envía una lectura cada 10 segundos. El micrófono solo calcula el nivel de
@@ -147,7 +147,7 @@ export function DemoPanel() {
                 setLevel(null);
                 setMicOn((on) => !on);
               }}
-              className="rounded-lg border border-border bg-white px-4 py-2 font-medium hover:bg-gray-50"
+              className="rounded-xl border border-border bg-white px-4 py-2 font-medium hover:bg-tint"
             >
               {micOn ? "Apagar micrófono" : "Usar micrófono para el ruido"}
             </button>

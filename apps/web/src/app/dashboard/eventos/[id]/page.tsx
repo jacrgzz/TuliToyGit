@@ -61,7 +61,7 @@ async function EventView({ params }: { params: PageProps<"/dashboard/eventos/[id
           Condiciones en los {PATTERNS.windowMinutes} minutos previos
         </h2>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <div className="rounded-xl border border-border bg-white p-4">
+          <div className="card">
             <p className="text-sm text-muted">Pico de ruido</p>
             <p className="mt-1 text-2xl font-bold">{fmt(peak, " dB")}</p>
             {peak !== null && (
@@ -72,18 +72,18 @@ async function EventView({ params }: { params: PageProps<"/dashboard/eventos/[id
               </span>
             )}
           </div>
-          <div className="rounded-xl border border-border bg-white p-4">
+          <div className="card">
             <p className="text-sm text-muted">Ruido promedio</p>
             <p className="mt-1 text-2xl font-bold">{fmt(summary.noise_avg, " dB")}</p>
           </div>
-          <div className="rounded-xl border border-border bg-white p-4">
+          <div className="card">
             <p className="text-sm text-muted">Luz (mín. a máx.)</p>
             <p className="mt-1 text-2xl font-bold">
               {fmt(summary.light_min)} – {fmt(summary.light_max)}
               <span className="ml-1 text-base font-normal text-muted">lux</span>
             </p>
           </div>
-          <div className="rounded-xl border border-border bg-white p-4">
+          <div className="card">
             <p className="text-sm text-muted">Temp. y humedad prom.</p>
             <p className="mt-1 text-2xl font-bold">
               {fmt(summary.temp_avg, " °C")} · {fmt(summary.humidity_avg, "%")}
@@ -106,7 +106,7 @@ async function EventView({ params }: { params: PageProps<"/dashboard/eventos/[id
         />
       )}
       {role === "admin" && note && (
-        <div className="rounded-xl border border-border bg-white p-4 text-sm">
+        <div className="card text-sm">
           <h2 className="text-lg font-semibold">Nota del docente</h2>
           <p className="mt-1 whitespace-pre-wrap">{note.note || "(sin texto)"}</p>
         </div>

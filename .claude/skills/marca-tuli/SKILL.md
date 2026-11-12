@@ -17,7 +17,7 @@ Tuli muestra **coincidencias** entre condiciones del ambiente y los momentos en 
 Español neutro, cálido, claro y breve. Aspecto de juguete amigable, no de aparato médico. Dirigido a padres y docentes, sin tecnicismos.
 
 ## Estilo visual
-- Color principal: naranja-rojo aprox. `#DB4A2B` (confirmar con Jac), fondo blanco o crema, texto oscuro. Definir como variables CSS/Tailwind en un solo lugar.
+- Color principal: morado `#6341c4` sobre fondo lila `#efe9fb`, tinta `#2e1650`, Poppins (paleta de la landing; Jac debe confirmarla). Definir como variables CSS/Tailwind en un solo lugar.
 - Semáforo: verde = tranquilo, amarillo = atención, rojo = nivel alto; nunca depender solo del color (agregar texto o icono). Umbrales en `apps/web/src/lib/thresholds.ts`.
 - Mobile first, tipografía grande, bordes redondeados, contraste AA.
 - Logo: ver `Tuli_Marca.pdf` (el PDF aún dice "Tilo"; en la UI siempre "Tuli").

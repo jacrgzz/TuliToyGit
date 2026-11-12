@@ -68,17 +68,20 @@ export function SidebarNav({
   return (
     <>
       {/* Escritorio: barra fija con texto. Tableta: solo íconos. */}
-      <aside className="sticky top-0 hidden h-screen w-16 shrink-0 flex-col border-r border-border bg-white md:flex lg:w-60 print:hidden">
-        <Link href="/dashboard" className="flex h-14 items-center justify-center text-xl font-bold text-brand lg:justify-start lg:px-5">
-          <span className="lg:hidden">T</span>
-          <span className="hidden lg:inline">Tuli</span>
+      <aside className="sticky top-0 hidden h-screen w-16 shrink-0 flex-col border-r border-border bg-white md:flex lg:w-64 print:hidden">
+        <Link href="/dashboard" className="flex h-16 items-center justify-center gap-3 lg:justify-start lg:px-5">
+          <span aria-hidden className="grid h-10 w-10 place-items-center rounded-xl bg-brand text-lg font-extrabold text-white">
+            T
+          </span>
+          <span className="hidden text-lg font-extrabold lg:inline">Tuli</span>
+          <span className="sr-only lg:hidden">Tuli</span>
         </Link>
         {picker && (
-          <div className="hidden px-3 pb-2 lg:block">
+          <div className="hidden px-4 pb-2 lg:block">
             <ClassroomPicker {...picker} />
           </div>
         )}
-        <nav aria-label="Secciones" className="flex-1 space-y-1 overflow-y-auto px-2 py-2">
+        <nav aria-label="Secciones" className="flex-1 space-y-1 overflow-y-auto px-2 py-2 lg:px-3">
           {items.map((item) => {
             const Icon = ICONS[item.icon];
             const active = isActive(pathname, item);
@@ -89,8 +92,8 @@ export function SidebarNav({
                 title={item.label}
                 aria-current={active ? "page" : undefined}
                 {...newTabProps(item)}
-                className={`flex items-center justify-center gap-3 rounded-lg px-3 py-2 text-sm font-medium lg:justify-start ${
-                  active ? "bg-brand/10 text-brand" : "text-foreground hover:bg-gray-100"
+                className={`flex items-center justify-center gap-3 rounded-xl px-3 py-2.5 text-sm lg:justify-start ${
+                  active ? "bg-tint font-semibold text-brand-dark" : "font-medium text-foreground hover:bg-surface-soft"
                 }`}
               >
                 <Icon aria-hidden className="h-5 w-5 shrink-0" />
@@ -105,20 +108,25 @@ export function SidebarNav({
           {picker && <ClassroomPicker {...picker} variant="icon" />}
           {compactAccount}
         </div>
-        <div className="hidden border-t border-border p-3 lg:block">
-          {badge && (
-            <span className="mb-2 inline-block rounded-full border border-brand px-2 py-0.5 text-xs font-semibold text-brand">{badge}</span>
-          )}
-          {account}
+        <div className="hidden p-3 lg:block">
+          <div className="rounded-2xl bg-surface-soft p-3">
+            {badge && (
+              <span className="mb-2 inline-block rounded-full bg-tint px-2.5 py-0.5 text-xs font-semibold text-brand-dark">{badge}</span>
+            )}
+            {account}
+          </div>
         </div>
       </aside>
 
       {/* Teléfono: barra superior mínima y barra inferior con 4 secciones y "Más". */}
       <header className="flex h-12 items-center justify-between border-b border-border bg-white px-4 md:hidden print:hidden">
-        <Link href="/dashboard" className="text-lg font-bold text-brand">
+        <Link href="/dashboard" className="flex items-center gap-2 text-lg font-extrabold">
+          <span aria-hidden className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-sm text-white">
+            T
+          </span>
           Tuli
         </Link>
-        {badge && <span className="rounded-full border border-brand px-2 py-0.5 text-xs font-semibold text-brand">{badge}</span>}
+        {badge && <span className="rounded-full bg-tint px-2.5 py-0.5 text-xs font-semibold text-brand-dark">{badge}</span>}
       </header>
       <nav
         aria-label="Secciones"
@@ -157,7 +165,7 @@ export function SidebarNav({
           <div className="absolute inset-x-0 bottom-0 rounded-t-2xl border-t border-border bg-white p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
             <div className="mb-2 flex items-center justify-between">
               <p className="font-semibold">Más</p>
-              <button type="button" onClick={() => setMore(false)} aria-label="Cerrar" className="rounded-lg p-2 hover:bg-gray-100">
+              <button type="button" onClick={() => setMore(false)} aria-label="Cerrar" className="rounded-lg p-2 hover:bg-tint">
                 <X aria-hidden className="h-5 w-5" />
               </button>
             </div>
@@ -177,7 +185,7 @@ export function SidebarNav({
                       onClick={() => setMore(false)}
                       aria-current={active ? "page" : undefined}
                       {...newTabProps(item)}
-                      className={`flex items-center gap-3 rounded-lg px-3 py-3 font-medium ${active ? "bg-brand/10 text-brand" : "hover:bg-gray-100"}`}
+                      className={`flex items-center gap-3 rounded-lg px-3 py-3 font-medium ${active ? "bg-tint text-brand-dark" : "hover:bg-tint"}`}
                     >
                       <Icon aria-hidden className="h-5 w-5" />
                       {item.label}

@@ -124,7 +124,7 @@ Los momentos de ansiedad de un niño son datos personales sensibles (LFPDPPP, M�
 
 ## Marca y UI
 
-- Color principal: naranja-rojo de la marca, aprox. `#DB4A2B` (tomado del PDF de marca; **confirmar hex exacto con Jac**) sobre blanco/crema. Logo y paleta: `Tuli_Marca.pdf`, `Tuli Branding.md`.
+- Paleta (12 nov 2026): la morada de la landing de Angel en toda la app. Principal `#6341c4`, fondo lila `#efe9fb`, tinta `#2e1650`, tipografía Poppins. Todo en variables de `apps/web/src/app/globals.css` (utilidades `card`, `card-flat`, anillo `lib/ui/Ring.tsx`); ver `docs/estilo-dashboard.md`. El naranja-rojo `#DB4A2B` del PDF de marca queda pendiente de que Jac confirme el cambio.
 - No hay wireframes: proponer UI limpia, amable, con aspecto de juguete y no de dispositivo médico. Mobile first (se usa como PWA).
 - Semáforo de condiciones: verde = tranquilo, amarillo = atención, rojo = nivel alto. Umbrales configurables en un solo archivo (`apps/web/src/lib/thresholds.ts`), no hardcodeados en componentes.
 - Skill `marca-tuli` para tono y reglas de texto.

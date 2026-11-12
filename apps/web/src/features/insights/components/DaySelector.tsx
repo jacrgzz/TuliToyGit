@@ -9,10 +9,10 @@ export function DaySelector({ day, days, basePath }: { day: string; days: number
           type="date"
           name="dia"
           defaultValue={day}
-          className="rounded-lg border border-border bg-white px-2 py-1 text-foreground"
+          className="rounded-xl border border-border bg-white px-2 py-1 text-foreground"
         />
       </label>
-      <button type="submit" className="rounded-lg border border-border bg-white px-3 py-1 hover:bg-gray-50">
+      <button type="submit" className="rounded-xl border border-border bg-white px-3 py-1 hover:bg-tint">
         Ver
       </button>
     </form>
