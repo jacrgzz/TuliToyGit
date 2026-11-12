@@ -57,6 +57,12 @@ r = await get(null, "/demo");
 check(r.status === 307 && r.location?.endsWith("/login"), "/demo sin sesión redirige a /login");
 r = await get(null, "/manifest.webmanifest");
 check(r.status === 200 && r.text.includes('"Tuli"'), "manifest de la PWA disponible");
+{
+  const m = r.status === 200 ? JSON.parse(r.text) : {};
+  check(m.background_color === "#efe9fb" && m.theme_color === "#6341c4", "manifest con el fondo lila y el morado de la marca");
+  const urls = (m.shortcuts ?? []).map((s) => s.url);
+  check(["/dashboard", "/dashboard/bitacora", "/pantalla"].every((u) => urls.includes(u)), "manifest con atajos a Hoy, Bitácora y Pantalla del salón");
+}
 r = await get(null, "/auth/callback");
 check(r.status === 307 && r.location?.includes("error=oauth"), "callback sin código vuelve a /login con error");
 
@@ -93,6 +99,7 @@ r = await get(p1.cookie, "/dashboard/ayuda");
 check(r.status === 200 && !hasRenderError(r) && r.text.includes("Para familias") && r.text.includes("Su juguete en casa"), "Ayuda muestra la sección para familias al tutor");
 r = await get(teacher.cookie, "/dashboard/ayuda");
 check(r.status === 200 && !r.text.includes("Para familias"), "el docente no ve la sección para familias");
+check(r.html.includes('id="app"') && r.text.includes("Instalar Tuli como app") && r.text.includes("Agregar a inicio") && r.text.includes("inicia sesión una vez"), "Ayuda explica cómo instalar la app, también en iPhone");
 r = await get(p1.cookie, `/dashboard/ninos/${kidA}/perfil`);
 check(r.status === 200 && !hasRenderError(r), "Perfil carga sin errores de render");
 check(r.text.includes("Perfil de sensibilidad") && r.text.includes("no indican la causa"), "Perfil muestra el perfil de sensibilidad y aclara que no son causas");

@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { InstallButton } from "@/features/pwa/components/InstallButton";
 import { ClassroomPicker } from "./ClassroomPicker";
 import { isActive, type NavIcon, type NavItem } from "./nav-items";
 
@@ -126,7 +127,10 @@ export function SidebarNav({
           </span>
           Tuli
         </Link>
-        {badge && <span className="rounded-full bg-tint px-2.5 py-0.5 text-xs font-semibold text-brand-dark">{badge}</span>}
+        <div className="flex items-center gap-2">
+          {badge && <span className="rounded-full bg-tint px-2.5 py-0.5 text-xs font-semibold text-brand-dark">{badge}</span>}
+          <InstallButton variant="chip" />
+        </div>
       </header>
       <nav
         aria-label="Secciones"

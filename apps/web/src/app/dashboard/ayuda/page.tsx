@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { getViewerRole } from "@/features/auth/queries";
 import { meetingQuestions } from "@/features/insights/family";
+import { InstallButton } from "@/features/pwa/components/InstallButton";
+import { IOS_STEPS } from "@/features/pwa/install";
 import { KPI, PATTERNS, THRESHOLDS } from "@/lib/thresholds";
 
 // Para familias (solo el tutor la ve arriba de todo). Consejos generales de acompañamiento, sin
@@ -125,6 +127,33 @@ export default function HelpPage() {
         <p>
           Tuli no es un dispositivo médico y no diagnostica. Los umbrales (por ejemplo {PATTERNS.noiseHigh} dB para ruido alto) son
           provisionales y se validarán con especialistas. Úsalo como apoyo para observar y conversar con la familia.
+        </p>
+      </section>
+      <section id="app" className="space-y-3 scroll-mt-4">
+        <h2 className="text-lg font-semibold">Instalar Tuli como app</h2>
+        <p>
+          Tuli se instala desde el navegador, sin tienda de apps. Queda un ícono en la pantalla de inicio que abre directo en «Hoy».
+        </p>
+        <div className="max-w-xs">
+          <InstallButton />
+        </div>
+        <div className="space-y-1">
+          <h3 className="font-semibold">En Android o en computadora</h3>
+          <p>
+            Usa Chrome o Edge. Toca «Instalar Tuli» o, en el menú del navegador, «Instalar app». Si mantienes presionado el ícono,
+            aparecen atajos a Hoy, la Bitácora y la Pantalla del salón (estos dos, para docentes).
+          </p>
+        </div>
+        <div className="space-y-1">
+          <h3 className="font-semibold">En iPhone o iPad</h3>
+          <ol className="list-decimal space-y-1 pl-5">
+            {IOS_STEPS.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ol>
+        </div>
+        <p className="text-sm text-muted">
+          Por ahora la app necesita internet: no guarda datos de los niños en el teléfono.
         </p>
       </section>
       <section className="space-y-2">
