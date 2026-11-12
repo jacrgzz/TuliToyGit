@@ -41,7 +41,7 @@ export function TrendChart({ rows }: { rows: Row[] }) {
               dataKey="events"
               name="Momentos del día"
               fill="var(--series-1)"
-              radius={[4, 4, 0, 0]}
+              radius={[8, 8, 2, 2]}
               maxBarSize={24}
               isAnimationActive={false}
             />

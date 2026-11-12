@@ -34,7 +34,7 @@ async function DashboardHome({ searchParams }: { searchParams: PageProps<"/dashb
   if (role === "teacher") {
     const { selected } = await getSelectedRoom();
     if (!selected) {
-      return <p className="rounded-xl border border-border bg-white p-4">Todavía no tienes un salón vinculado a tu cuenta.</p>;
+      return <p className="card">Todavía no tienes un salón vinculado a tu cuenta.</p>;
     }
     return (
       <div className="space-y-8">
@@ -55,7 +55,7 @@ async function DashboardHome({ searchParams }: { searchParams: PageProps<"/dashb
 
   if (children.length === 0) {
     return (
-      <p className="rounded-xl border border-border bg-white p-4">
+      <p className="card">
         Todavía no tienes niños vinculados a tu cuenta. Pide a quien administra
         Tuli que vincule tu cuenta.
       </p>

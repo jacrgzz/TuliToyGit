@@ -24,7 +24,7 @@ function Card({
   level: Level | null;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-white p-4">
+    <div className="card">
       <p className="text-sm text-muted">{label}</p>
       <p className="mt-1 text-3xl font-bold">
         {value === null ? "—" : Math.round(value * 10) / 10}
@@ -45,7 +45,7 @@ function Card({
 export function ConditionsPanel({ reading }: { reading: LatestReading | null }) {
   if (!reading) {
     return (
-      <p className="rounded-xl border border-border bg-white p-4 text-muted">
+      <p className="card text-muted">
         La caja de este salón todavía no ha enviado lecturas.
       </p>
     );

@@ -4,7 +4,7 @@ import Link from "next/link";
 // Sin valoraciones ("mejor" o "peor") ni causas.
 export function WeekSummary({ sentences, noisiestHour, notable }: { sentences: string[]; noisiestHour: string | null; notable: string[] }) {
   return (
-    <section aria-labelledby="week-title" className="rounded-xl border border-border bg-white p-4">
+    <section aria-labelledby="week-title" className="card">
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
         <h2 id="week-title" className="text-lg font-semibold">Esta semana</h2>
         <Link href="/dashboard/salon" className="text-sm underline">

@@ -23,7 +23,7 @@ export function ClassroomPicker({
 
   if (variant === "icon") {
     return (
-      <form action={action} className="relative flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-white hover:bg-gray-50">
+      <form action={action} className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-white hover:bg-tint">
         <School aria-hidden className="h-5 w-5" />
         <label htmlFor={id} className="sr-only">
           Salón: {current}
@@ -57,7 +57,7 @@ export function ClassroomPicker({
           name="id"
           defaultValue={selectedId}
           onChange={(e) => e.currentTarget.form?.requestSubmit()}
-          className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm font-medium"
+          className="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm font-medium"
         >
           {rooms.map((r) => (
             <option key={r.id} value={r.id}>
@@ -66,7 +66,7 @@ export function ClassroomPicker({
           ))}
         </select>
         <noscript>
-          <button type="submit" className="rounded-lg border border-border px-3 text-sm">
+          <button type="submit" className="rounded-xl border border-border px-3 text-sm">
             Cambiar
           </button>
         </noscript>

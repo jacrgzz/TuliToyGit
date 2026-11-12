@@ -30,7 +30,7 @@ async function Screen() {
         role="status"
         aria-live="polite"
         className={`flex flex-1 flex-col items-center justify-center rounded-3xl border-8 p-6 text-center ${
-          level ? LEVEL_CLASS[level] : "border-border bg-gray-100 text-muted"
+          level ? LEVEL_CLASS[level] : "border-border bg-tint text-muted"
         }`}
       >
         <p className="text-sm font-medium uppercase tracking-wide sm:text-base">Ruido del salón</p>
@@ -42,11 +42,11 @@ async function Screen() {
       </div>
 
       <dl className="grid grid-cols-2 gap-4 text-center sm:gap-6">
-        <div className="rounded-2xl border border-border p-4">
+        <div className="card">
           <dt className="text-sm text-muted sm:text-base">Temperatura</dt>
           <dd className="mt-1 text-3xl font-bold sm:text-4xl">{stale ? "—" : `${round(reading!.temp_c)} °C`}</dd>
         </div>
-        <div className="rounded-2xl border border-border p-4">
+        <div className="card">
           <dt className="text-sm text-muted sm:text-base">Luz</dt>
           <dd className="mt-1 text-3xl font-bold sm:text-4xl">{stale ? "—" : `${round(reading!.light_lux)} lux`}</dd>
         </div>

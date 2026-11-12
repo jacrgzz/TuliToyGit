@@ -20,7 +20,7 @@ export async function UserMenu() {
       <form action={signOut}>
         <button
           type="submit"
-          className="rounded-lg border border-border bg-white px-3 py-1.5 hover:bg-gray-50"
+          className="rounded-xl border border-border bg-white px-3 py-1.5 hover:bg-tint"
         >
           Salir
         </button>

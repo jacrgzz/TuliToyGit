@@ -32,11 +32,11 @@ async function Profile({ params, searchParams }: { params: Props["params"]; sear
           <PeriodSelector current={days} basePath={`/dashboard/ninos/${child.id}/perfil`} />
         </div>
         <ProfileSummary rows={lift} days={days} />
-        <div className="rounded-xl border border-border bg-white p-4">
+        <div className="card">
           <h3 className="mb-3 font-semibold">Qué condiciones acompañan sus momentos</h3>
           <SensitivityBars rows={lift} />
         </div>
-        <div className="rounded-xl border border-border bg-white p-4">
+        <div className="card">
           <h3 className="mb-1 font-semibold">Ruido antes y después de sus momentos</h3>
           {curve.length > 0 ? (
             <EventCurveChart points={curve} />
@@ -48,12 +48,12 @@ async function Profile({ params, searchParams }: { params: Props["params"]; sear
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Nivel de ruido y combinaciones</h2>
-        <div className="rounded-xl border border-border bg-white p-4">
+        <div className="card">
           <h3 className="mb-1 font-semibold">Umbral personal de ruido</h3>
           <p className="mb-3 text-sm">{thresholdSummary(dist)}</p>
           {dist.length > 0 && <ThresholdChart bins={dist} thresholdDb={personalThreshold(dist)?.db ?? null} />}
         </div>
-        <div className="rounded-xl border border-border bg-white p-4">
+        <div className="card">
           <h3 className="mb-1 font-semibold">Ruido y luz juntos</h3>
           <p className="mb-3 text-sm">{comboSummary(combo)}</p>
           <ComboTable rows={combo} />
@@ -63,7 +63,7 @@ async function Profile({ params, searchParams }: { params: Props["params"]; sear
       {activityLift.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">Actividades de la bitácora</h2>
-          <div className="rounded-xl border border-border bg-white p-4">
+          <div className="card">
             <p className="mb-3 text-sm text-muted">
               ¿Sus momentos ocurren más a menudo durante alguna actividad que en el resto del tiempo?
             </p>

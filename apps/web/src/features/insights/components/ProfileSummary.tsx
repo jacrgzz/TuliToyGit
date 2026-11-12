@@ -6,7 +6,7 @@ import type { ConditionLiftRow } from "../queries";
 export function ProfileSummary({ rows, days }: { rows: ConditionLiftRow[]; days: number }) {
   const sentences = summarize(rows);
   return (
-    <div className="rounded-xl border border-border bg-white p-4">
+    <div className="card">
       <ul className="list-disc space-y-2 pl-5">
         {sentences.map((s) => (
           <li key={s}>{s}</li>

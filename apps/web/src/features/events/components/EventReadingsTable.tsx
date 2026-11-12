@@ -17,14 +17,14 @@ const fmt = (n: number | null, digits = 1) =>
 export function EventReadingsTable({ rows }: { rows: Row[] }) {
   if (rows.length === 0) {
     return (
-      <p className="rounded-xl border border-border bg-white p-4 text-muted">
+      <p className="card text-muted">
         No hay lecturas de la caja en los 5 minutos previos a este momento.
       </p>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-white">
+    <div className="overflow-x-auto card-flat">
       <table className="w-full text-left text-sm">
         <thead className="border-b border-border text-muted">
           <tr>

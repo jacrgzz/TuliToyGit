@@ -6,7 +6,7 @@ import { requireTeacherRoom } from "../_components/room";
 async function Room({ searchParams }: { searchParams: PageProps<"/dashboard/salon">["searchParams"] }) {
   const [room, sp] = await Promise.all([requireTeacherRoom(), searchParams]);
   const days = parsePeriod(sp.dias);
-  if (!room) return <p className="rounded-xl border border-border bg-white p-4">Todavía no tienes un salón vinculado a tu cuenta.</p>;
+  if (!room) return <p className="card">Todavía no tienes un salón vinculado a tu cuenta.</p>;
   return (
     <div className="space-y-8">
       <h1 className="text-2xl font-bold">Mi salón · {room.name}</h1>

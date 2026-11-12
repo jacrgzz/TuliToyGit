@@ -23,7 +23,7 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
 
 function Stat({ label, value, warn }: { label: string; value: number; warn?: boolean }) {
   return (
-    <div className="rounded-xl border border-border bg-white p-4">
+    <div className="card">
       <p className="text-sm text-muted">{label}</p>
       <p className={`mt-1 text-3xl font-bold ${warn && value > 0 ? "text-high" : ""}`}>{value}</p>
     </div>
@@ -32,7 +32,7 @@ function Stat({ label, value, warn }: { label: string; value: number; warn?: boo
 
 const th = "px-3 py-2 font-medium";
 const td = "px-3 py-2";
-const table = "overflow-x-auto rounded-xl border border-border bg-white";
+const table = "overflow-x-auto card-flat";
 
 // Debe renderse en un contexto dinámico (usa la hora actual y cookies).
 export async function AdminPanel() {
@@ -60,7 +60,7 @@ export async function AdminPanel() {
       <Section title="Salones y niños" hint="Abre cualquier vista como la ve cada rol.">
         <ul className="grid gap-3 sm:grid-cols-2">
           {rooms.map((r) => (
-            <li key={r.id} className="rounded-xl border border-border bg-white p-4">
+            <li key={r.id} className="card">
               <Link href={`/dashboard/salones/${r.id}`} className="text-lg font-semibold text-brand hover:underline">
                 {r.name} · vista del docente
               </Link>
@@ -108,7 +108,7 @@ export async function AdminPanel() {
                     <td className={td}>
                       <span
                         className={`rounded-full border px-2 py-0.5 text-xs font-medium ${
-                          online ? "border-calm bg-calm/10 text-calm" : "border-border text-muted"
+                          online ? "border-transparent bg-calm/10 text-calm" : "border-border text-muted"
                         }`}
                       >
                         {online ? "En línea" : "Sin señal"}
@@ -173,10 +173,10 @@ export async function AdminPanel() {
                     <span
                       className={`rounded-full border px-2 py-0.5 text-xs font-medium ${
                         l.outcome === "ok"
-                          ? "border-calm bg-calm/10 text-calm"
+                          ? "border-transparent bg-calm/10 text-calm"
                           : l.outcome === "duplicate"
-                            ? "border-attention bg-attention/10 text-attention"
-                            : "border-high bg-high/10 text-high"
+                            ? "border-transparent bg-attention/10 text-attention"
+                            : "border-transparent bg-high/10 text-high"
                       }`}
                     >
                       {l.outcome}

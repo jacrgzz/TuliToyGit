@@ -22,7 +22,7 @@ export default function Home() {
         <span className="text-xl font-bold text-brand">Tuli</span>
         <Link
           href="/login"
-          className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50"
+          className="rounded-xl border border-border bg-white px-4 py-2 text-sm font-medium hover:bg-tint"
         >
           Iniciar sesión
         </Link>
@@ -51,7 +51,7 @@ export default function Home() {
             {steps.map((s, i) => (
               <li
                 key={s.title}
-                className="rounded-xl border border-border bg-white p-4"
+                className="card"
               >
                 <span className="text-sm font-semibold text-brand">
                   Paso {i + 1}

@@ -25,7 +25,7 @@ async function Week({ params }: { params: Props["params"] }) {
 
   return (
     <div className="space-y-6">
-      <section className="space-y-4 rounded-xl border border-border bg-white p-4">
+      <section className="space-y-4 card">
         <h2 className="text-lg font-semibold">Su semana</h2>
         <ul className="list-disc space-y-1 pl-5">
           {week.sentences.map((s) => (
@@ -35,14 +35,14 @@ async function Week({ params }: { params: Props["params"] }) {
         <WeekDays days={week.days} />
       </section>
 
-      <section className="space-y-2 rounded-xl border border-border bg-white p-4">
+      <section className="space-y-2 card">
         <h2 className="text-lg font-semibold">Lo que más coincidió</h2>
         <p>{coincidence.sentence}</p>
         <p>{timeOfDaySummary(heat)}</p>
         <p className="text-xs text-muted">Últimos {DAYS} días. Tuli muestra coincidencias con el ambiente del salón; no es un dispositivo médico.</p>
       </section>
 
-      <section className="space-y-2 rounded-xl border border-border bg-white p-4">
+      <section className="space-y-2 card">
         <h2 className="text-lg font-semibold">Para platicar con su maestra o maestro</h2>
         <ul className="list-disc space-y-1 pl-5">
           {meetingQuestions(coincidence.top).map((q) => (

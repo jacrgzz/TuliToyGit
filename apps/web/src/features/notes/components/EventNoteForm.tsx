@@ -46,7 +46,7 @@ export function EventNoteForm({
   }
 
   return (
-    <div className="rounded-xl border border-border bg-white p-4">
+    <div className="card">
       <h2 className="text-lg font-semibold">Nota del docente</h2>
       <p className="mt-1 text-sm text-muted">
         Solo la ven los docentes del salón. Usa el alias del niño y evita datos que lo identifiquen.
@@ -58,7 +58,7 @@ export function EventNoteForm({
           onChange={(e) => setNote(e.target.value)}
           maxLength={500}
           rows={3}
-          className="mt-1 w-full rounded-lg border border-border bg-white px-2 py-1.5"
+          className="mt-1 w-full rounded-xl border border-border bg-white px-2 py-1.5"
         />
         <span className="text-xs text-muted">{note.length}/500</span>
       </label>
@@ -88,7 +88,7 @@ export function EventNoteForm({
             type="button"
             onClick={clear}
             disabled={pending}
-            className="rounded-lg border border-border px-3 py-2 text-sm hover:bg-gray-50 disabled:opacity-60"
+            className="rounded-xl border border-border px-3 py-2 text-sm hover:bg-tint disabled:opacity-60"
           >
             Quitar nota
           </button>

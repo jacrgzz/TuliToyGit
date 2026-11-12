@@ -26,11 +26,16 @@ export async function Sidebar() {
           Modo demo
         </Link>
       )}
-      <p className="truncate text-muted" title={data.user.email ?? undefined}>
-        {data.user.email}
-      </p>
+      <div className="flex items-center gap-2">
+        <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#ffd9ec] text-xs font-semibold uppercase">
+          {(data.user.email ?? "?").slice(0, 2)}
+        </span>
+        <p className="truncate text-muted" title={data.user.email ?? undefined}>
+          {data.user.email}
+        </p>
+      </div>
       <form action={signOut}>
-        <button type="submit" className="flex w-full items-center gap-2 rounded-lg border border-border bg-white px-3 py-1.5 hover:bg-gray-50">
+        <button type="submit" className="flex w-full items-center gap-2 rounded-xl border border-border bg-white px-3 py-1.5 hover:bg-tint">
           <LogOut aria-hidden className="h-4 w-4" />
           Salir
         </button>
@@ -40,7 +45,7 @@ export async function Sidebar() {
 
   const compactAccount = (
     <form action={signOut}>
-      <button type="submit" title="Salir" aria-label="Salir" className="rounded-lg border border-border bg-white p-2 hover:bg-gray-50">
+      <button type="submit" title="Salir" aria-label="Salir" className="rounded-xl border border-border bg-white p-2 hover:bg-tint">
         <LogOut aria-hidden className="h-5 w-5" />
       </button>
     </form>

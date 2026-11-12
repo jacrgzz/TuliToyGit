@@ -9,7 +9,7 @@ export function WeekDays({ days }: { days: WeekDay[] }) {
       {days.map((d) => (
         <li key={d.day} className="grid grid-cols-[3rem_1fr_5rem] items-center gap-3 text-sm">
           <span className="font-medium">{DOW_LABEL[d.dow - 1]}</span>
-          <span className="h-3 rounded-full bg-gray-100" aria-hidden>
+          <span className="h-3 rounded-full bg-tint" aria-hidden>
             {d.events !== null && d.events > 0 && (
               <span className="block h-3 rounded-full bg-series-1" style={{ width: `${(d.events / max) * 100}%` }} />
             )}
