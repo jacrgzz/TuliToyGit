@@ -1,7 +1,7 @@
 > **Implementado (12 nov 2026)** en la rama `estilo-dashboard`: tokens y Poppins (capas 1 y 2), utilidades `card` / `card-flat`,
 > anillo `lib/ui/Ring.tsx`, barra lateral, ancho del contenido, entrada en ola, KPIs con anillo y en 2 filas, píldoras sin borde,
 > barras redondeadas. Contraste medido: series 6.8:1 y 3.05:1 sobre blanco; gris `#5b4a7a` 6.5:1 sobre lila; textos de estado ≥ 5.5:1.
-> **Pendiente (PR aparte):** barra superior con búsqueda ⌘K y campana de avisos (sección 6).
+> **Búsqueda y campana (sección 6): implementadas** en la rama `busqueda-campana` (`_components/TopBar.tsx`, `TopBarClient.tsx`, lógica pura en `top-bar.ts`). Una letra sola en la búsqueda cuenta como palabra completa ("alumno a" no trae a "Alumno B"). Avisos: ruido alto ahora (solo docente), batería baja y juguetes sin datos en 24 h.
 
 # Plan: estilo nuevo del dashboard (paleta de la landing)
 
