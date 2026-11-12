@@ -65,13 +65,13 @@ async function Report({ params, searchParams }: { params: Props["params"]; searc
   return (
     <article className="mx-auto max-w-3xl space-y-6 print:max-w-none">
       <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <Link href={`/dashboard/ninos/${child.id}?dias=${days}`} className="text-sm text-muted hover:underline">
+        <Link href={`/dashboard/ninos/${child.id}/resumen?dias=${days}`} className="text-sm text-muted hover:underline">
           ← Volver a {child.display_name}
         </Link>
         <div className="flex flex-wrap items-center gap-2">
           <a
             href={`/dashboard/ninos/${child.id}/reporte.csv?dias=${days}`}
-            className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50"
+            className="rounded-xl border border-border bg-white px-4 py-2 text-sm font-medium hover:bg-tint"
           >
             Descargar CSV
           </a>
@@ -115,7 +115,7 @@ async function Report({ params, searchParams }: { params: Props["params"]; searc
         </section>
       )}
 
-      <section className="rounded-lg border border-border p-4 text-sm">
+      <section className="rounded-xl border border-border p-4 text-sm">
         <h2 className="text-base font-semibold">Cómo leer este reporte</h2>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-muted">
           <li>

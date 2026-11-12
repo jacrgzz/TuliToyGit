@@ -43,3 +43,11 @@ export async function listClassroomChildren(classroomId: string) {
   if (error) throw new Error(`No se pudieron cargar los niños del salón: ${error.message}`);
   return data;
 }
+
+// Salones que el usuario puede ver (RLS): el docente, los suyos; el admin, todos.
+export async function listMyClassrooms() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("classrooms").select("id, name").order("name");
+  if (error) throw new Error(`No se pudieron cargar los salones: ${error.message}`);
+  return data;
+}

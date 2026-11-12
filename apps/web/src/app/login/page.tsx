@@ -12,7 +12,7 @@ async function OAuthError({
   const { error } = await searchParams;
   if (error !== "oauth") return null;
   return (
-    <p role="alert" className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-high">
+    <p role="alert" className="mb-4 rounded-lg bg-high/10 p-3 text-sm text-high">
       No se pudo completar el acceso con Google. Intenta de nuevo.
     </p>
   );
@@ -42,7 +42,7 @@ export default function LoginPage(props: PageProps<"/login">) {
         pendiente.)
       </p>
 
-      <details className="mt-8 rounded-xl border border-border bg-white p-4">
+      <details className="mt-8 card">
         <summary className="cursor-pointer text-sm font-medium">
           Cuentas de demostración (datos simulados)
         </summary>

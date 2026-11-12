@@ -65,7 +65,7 @@ export function conditionTitle(key: string) {
   return CONDITION_TITLE[key as ConditionKey] ?? ACTIVITY_TITLE[key] ?? key;
 }
 
-function conditionText(key: string) {
+export function conditionText(key: string) {
   return CONDITION_TEXT[key as ConditionKey] ?? ACTIVITY_TITLE[key]?.toLowerCase() ?? key;
 }
 

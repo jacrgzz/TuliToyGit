@@ -52,6 +52,13 @@ const classroom =
   room ?? must(await admin.from("classrooms").insert({ name: "Salón demo" }).select("id").single(), "crear salón");
 const classroomId = classroom.id as string;
 
+// 1b. Segundo salón, vacío (sin niños, caja ni lecturas): sirve para probar el selector de salón y los estados vacíos.
+// Su nombre va después de "Salón demo" en orden alfabético para que el docente siga entrando al primero.
+const ROOM_B = "Salón demo B (vacío)";
+const { data: roomRowB } = await admin.from("classrooms").select("id").eq("name", ROOM_B).maybeSingle();
+const classroomB = roomRowB ?? must(await admin.from("classrooms").insert({ name: ROOM_B }).select("id").single(), "crear salón B");
+const classroomBId = classroomB.id as string;
+
 // 2. Niños (alias; nunca datos reales)
 async function ensureChild(display_name: string) {
   const { data } = await admin.from("children").select("id").eq("display_name", display_name).eq("classroom_id", classroomId).maybeSingle();
@@ -94,7 +101,10 @@ must(await admin.from("guardians").upsert([
   { profile_id: padre2, child_id: childB },
 ]).select(), "vincular tutores");
 must(await admin.from("admins").upsert({ profile_id: adminUser }).select(), "crear admin demo");
-must(await admin.from("teacher_classrooms").upsert({ profile_id: docente, classroom_id: classroomId }).select(), "vincular docente");
+must(await admin.from("teacher_classrooms").upsert([
+  { profile_id: docente, classroom_id: classroomId },
+  { profile_id: docente, classroom_id: classroomBId },
+]).select(), "vincular docente");
 
 // 4. Dispositivos con tokens nuevos (se guarda solo el hash)
 const tokens = { toy1: newToken(), toy2: newToken(), box: newToken() };
@@ -115,7 +125,7 @@ upsertEnv({
 });
 
 console.log("✔ Provisión lista (solo datos simulados).");
-console.log("  Salón: Salón demo · Niños: Alumno A, Alumno B");
+console.log("  Salones: Salón demo (Alumno A, Alumno B) y Salón demo B (vacío)");
 console.log("  Usuarios: padre1@tuli.test (Alumno A), padre2@tuli.test (Alumno B), docente@tuli.test (salón), admin@tuli.test (admin de solo lectura)");
 console.log("  Dispositivos: tuli-toy-01, tuli-toy-02, tuli-box-01 y los de /demo (tuli-toy-demo, tuli-box-demo)");
 console.log("  Tokens y DEMO_PASSWORD escritos en apps/web/.env.local (revísalo tú; no se imprimen).");

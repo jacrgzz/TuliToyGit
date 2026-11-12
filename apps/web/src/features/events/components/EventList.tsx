@@ -3,10 +3,11 @@ import { formatDateTime } from "@/lib/format";
 import { LEVEL_CLASS, LEVEL_LABEL, noiseLevel, PATTERNS } from "@/lib/thresholds";
 import type { EventSummary } from "../queries";
 
-export function EventList({ events }: { events: EventSummary[] }) {
+// `childNames` (opcional, lo compone la capa de app) muestra de quién es cada momento.
+export function EventList({ events, childNames }: { events: EventSummary[]; childNames?: Map<string, string> }) {
   if (events.length === 0) {
     return (
-      <p className="rounded-xl border border-border bg-white p-4 text-muted">
+      <p className="card text-muted">
         Todavía no hay momentos registrados con el juguete.
       </p>
     );
@@ -22,9 +23,10 @@ export function EventList({ events }: { events: EventSummary[] }) {
           <li key={e.event_id}>
             <Link
               href={`/dashboard/eventos/${e.event_id}`}
-              className={`flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-white p-4 hover:bg-gray-50 ${e.accidental ? "opacity-60" : ""}`}
+              className={`flex flex-wrap items-center justify-between gap-2 card hover:bg-tint ${e.accidental ? "opacity-60" : ""}`}
             >
               <div>
+                {childNames && e.child_id && <p className="text-sm font-semibold">{childNames.get(e.child_id) ?? "Niño"}</p>}
                 <p className="font-medium">{e.occurred_at ? formatDateTime(e.occurred_at) : "Hora desconocida"}</p>
                 {e.accidental && (
                   <p className="text-xs font-medium text-muted">Marcado como accidental (no cuenta en los análisis)</p>
@@ -45,7 +47,7 @@ export function EventList({ events }: { events: EventSummary[] }) {
                       {Math.round(peak)} dB · {LEVEL_LABEL[noiseLevel(peak)]}
                     </span>
                     {swing !== null && swing >= PATTERNS.lightSwing && (
-                      <span className="rounded-full border border-attention bg-attention/10 px-2 py-0.5 text-xs font-medium text-attention">
+                      <span className="rounded-full border border-transparent bg-attention/10 px-2 py-0.5 text-xs font-medium text-attention">
                         Luz cambió {Math.round(swing)} lux
                       </span>
                     )}

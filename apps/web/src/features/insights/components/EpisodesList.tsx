@@ -8,7 +8,7 @@ export function EpisodesList({ episodes }: { episodes: EpisodeRow[] }) {
     <div>
       <p className="mb-3">{episodesSummary(episodes)}</p>
       {recent.length > 0 && (
-        <div className="overflow-x-auto rounded-lg border border-border">
+        <div className="overflow-x-auto rounded-xl border border-border">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-border text-muted">
               <tr>

@@ -17,11 +17,11 @@ function Trend({ last, prev }: { last: number; prev: number }) {
 
 export function ProfilesTable({ profiles }: { profiles: ClassroomProfile[] }) {
   if (profiles.length === 0) {
-    return <p className="rounded-xl border border-border bg-white p-4 text-muted">Este salón no tiene niños.</p>;
+    return <p className="card text-muted">Este salón no tiene niños.</p>;
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-white">
+    <div className="overflow-x-auto card-flat">
       <table className="w-full text-left text-sm">
         <thead className="border-b border-border text-muted">
           <tr>
@@ -49,7 +49,7 @@ export function ProfilesTable({ profiles }: { profiles: ClassroomProfile[] }) {
             return (
               <tr key={p.child_id} className="border-b border-border last:border-0">
                 <td className="px-3 py-2">
-                  <Link href={`/dashboard/ninos/${p.child_id}`} className="font-medium text-brand hover:underline">
+                  <Link href={`/dashboard/ninos/${p.child_id}/resumen`} className="font-medium text-brand hover:underline">
                     {p.display_name}
                   </Link>
                 </td>

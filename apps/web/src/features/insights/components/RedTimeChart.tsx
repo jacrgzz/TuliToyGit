@@ -34,7 +34,7 @@ export function RedTimeChart({ rows, threshold }: { rows: Row[]; threshold: numb
               tick={{ fill: "var(--muted)", fontSize: 12 }}
               stroke="var(--chart-grid)"
             />
-            <Bar dataKey="pct" name={`Lecturas con pico ≥ ${threshold} dB`} fill="var(--series-1)" radius={[4, 4, 0, 0]} maxBarSize={24} isAnimationActive={false} />
+            <Bar dataKey="pct" name={`Lecturas con pico ≥ ${threshold} dB`} fill="var(--series-1)" radius={[8, 8, 2, 2]} maxBarSize={24} isAnimationActive={false} />
             <Tooltip formatter={(v) => [`${v} %`, `Lecturas con pico ≥ ${threshold} dB`]} />
           </BarChart>
         </ResponsiveContainer>

@@ -25,7 +25,8 @@ const results = [];
 let abort = false;
 
 // `retries`: reintentos para pasos que dependen de la red del CLI de Supabase (se avisa si hizo falta).
-function step(name, cwd, cmd, cmdArgs, { critical = false, validate, retries = 0 } = {}) {
+// `timeoutMs`: si el comando no termina a tiempo, el paso falla en vez de colgar toda la puerta de calidad.
+function step(name, cwd, cmd, cmdArgs, { critical = false, validate, retries = 0, timeoutMs = 0 } = {}) {
   if (abort) return;
   const start = Date.now();
   process.stdout.write(`▶ ${name} … `);
@@ -34,7 +35,7 @@ function step(name, cwd, cmd, cmdArgs, { critical = false, validate, retries = 0
   let attempts = 0;
   do {
     attempts++;
-    const r = spawnSync(cmd, cmdArgs, { cwd, encoding: "utf8", env: process.env, maxBuffer: 50 * 1024 * 1024 });
+    const r = spawnSync(cmd, cmdArgs, { cwd, encoding: "utf8", env: process.env, maxBuffer: 50 * 1024 * 1024, timeout: timeoutMs || undefined, killSignal: "SIGKILL" });
     out = `${r.stdout ?? ""}${r.stderr ?? ""}`;
     ok = r.status === 0;
     if (ok && validate) ok = validate(out);
@@ -100,6 +101,7 @@ if (wantLive) {
   simStep("Aviso en vivo por ruido alto", "check-alert");
   step("Migraciones locales = remotas", ROOT, "npx", ["supabase", "migration", "list", "--remote"], {
     retries: 2,
+    timeoutMs: 120_000,
     validate: (out) => {
       const line = out.split("\n").reverse().find((l) => l.startsWith('{"migrations"'));
       if (!line) return false;
@@ -109,6 +111,7 @@ if (wantLive) {
   });
   step("Lint del esquema de la base de datos", ROOT, "npx", ["supabase", "db", "lint", "--remote"], {
     retries: 2,
+    timeoutMs: 120_000,
     validate: (out) => out.includes("No schema errors found"),
   });
 

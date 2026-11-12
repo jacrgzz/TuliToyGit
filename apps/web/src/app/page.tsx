@@ -1,9 +1,8 @@
-import { Poppins } from "next/font/google";
 import HeroGrid from "@/features/landing/components/HeroGrid";
 import LandingSections from "@/features/landing/components/LandingSections";
 
 // Landing: diseño de Angel Cervantes (osito 3D y hero que se vuelve grid). Plan en docs/landing.md.
-const poppins = Poppins({ subsets: ["latin"], weight: ["400", "500", "600", "800"], display: "swap" });
+// Poppins viene del layout raíz (toda la app la usa).
 
 // Sin JavaScript no hay pantalla de carga ni animación: todo visible desde el principio.
 const NO_JS_CSS =
@@ -11,7 +10,7 @@ const NO_JS_CSS =
 
 export default function Home() {
   return (
-    <main className={`${poppins.className} min-h-[100dvh] w-full flex-1 bg-[#efe9fb] px-3 sm:px-6 lg:px-8`}>
+    <main className="min-h-[100dvh] w-full flex-1 bg-[#efe9fb] px-3 sm:px-6 lg:px-8">
       <noscript>
         <style>{NO_JS_CSS}</style>
       </noscript>

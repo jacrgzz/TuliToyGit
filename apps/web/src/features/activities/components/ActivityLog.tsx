@@ -11,7 +11,7 @@ import { ACTIVITY_KINDS, ACTIVITY_LABEL, type ActivityKind } from "../schemas";
 
 type Item = { id: string; kind: string; name: string; starts_at: string; ends_at: string };
 
-const field = "mt-1 w-full rounded-lg border border-border bg-white px-2 py-1.5";
+const field = "mt-1 w-full rounded-xl border border-border bg-white px-2 py-1.5";
 
 export function ActivityLog({
   classroomId,
@@ -61,7 +61,7 @@ export function ActivityLog({
             e.preventDefault();
             submit(e.currentTarget);
           }}
-          className="grid gap-3 rounded-xl border border-border bg-white p-4 sm:grid-cols-2"
+          className="grid gap-3 card sm:grid-cols-2"
         >
           <label className="text-sm">
             Tipo
@@ -103,13 +103,13 @@ export function ActivityLog({
       )}
 
       {activities.length === 0 ? (
-        <p className="rounded-xl border border-border bg-white p-4 text-muted">
+        <p className="card text-muted">
           {canEdit
             ? "Todavía no hay actividades en los últimos 14 días. Márcalas para ver si los momentos coinciden con alguna."
             : "No hay actividades en la bitácora de los últimos 14 días."}
         </p>
       ) : (
-        <ul className="divide-y divide-border rounded-xl border border-border bg-white">
+        <ul className="divide-y divide-border overflow-hidden card-flat">
           {activities.map((a) => (
             <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 text-sm">
               <span>
@@ -124,7 +124,7 @@ export function ActivityLog({
                   type="button"
                   onClick={() => remove(a.id)}
                   disabled={pending}
-                  className="rounded-lg border border-border px-2 py-1 text-xs hover:bg-gray-50 disabled:opacity-60"
+                  className="rounded-xl border border-border px-2 py-1 text-xs hover:bg-tint disabled:opacity-60"
                   aria-label={`Quitar ${a.name}`}
                 >
                   Quitar
