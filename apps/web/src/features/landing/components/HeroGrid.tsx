@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import OsitoCanvas from "./scene/OsitoCanvas";
 import { ositoView, hasWebGL } from "./scene/view";
@@ -169,9 +170,14 @@ export default function HeroGrid() {
           className="landing-curtain fixed inset-0 z-0 grid place-items-center bg-white transition-opacity duration-700"
           style={{ opacity: loading ? 1 : 0 }}
         >
-          <span className="animate-pulse text-7xl font-extrabold tracking-tight text-[#6341c4] motion-reduce:animate-none sm:text-8xl">
-            Tuli
-          </span>
+          <Image
+            src="/logo-tulitoy.png"
+            alt=""
+            width={200}
+            height={205}
+            priority
+            className="h-32 w-auto animate-pulse motion-reduce:animate-none sm:h-44"
+          />
         </div>
       )}
       {loading && (
