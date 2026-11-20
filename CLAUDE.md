@@ -25,7 +25,7 @@ Nombre vigente: **Tuli**. En la UI y el código nuevo usa solo "Tuli". Antes: Ti
 | UI | Tailwind CSS + shadcn/ui + Recharts |
 | Validación | zod |
 | Datos y auth | Supabase (Postgres, Auth, Realtime), migraciones con Supabase CLI en `supabase/migrations` |
-| PWA | Manifest + íconos (instalable). Sin service worker a propósito: no se cachea nada offline porque los datos de los niños son sensibles |
+| PWA | Manifest + íconos + atajos (instalable), botón «Instalar Tuli» y guía de iPhone en `features/pwa` (lógica pura en `install.ts`) y en Ayuda `#app`. Sin service worker por ahora: no se cachea nada offline. Fases 2–4 (lo de hoy y bitácora sin conexión con reglas de privacidad, push) en `docs/plan-pwa.md` |
 | Despliegue | Vercel |
 | Simulador | Node + TypeScript en `tools/simulator` |
 | Firmware | Arduino/PlatformIO en `firmware/` (después de la demo) |

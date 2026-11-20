@@ -3,6 +3,7 @@ import Link from "next/link";
 import { signOut } from "@/features/auth/actions";
 import { getViewerRole } from "@/features/auth/queries";
 import { demoEnabled } from "@/features/ingest/demo";
+import { InstallButton } from "@/features/pwa/components/InstallButton";
 import { createClient } from "@/lib/supabase/server";
 import { chooseClassroom } from "./actions";
 import { navItemsFor } from "./nav-items";
@@ -34,6 +35,7 @@ export async function Sidebar() {
           {data.user.email}
         </p>
       </div>
+      <InstallButton />
       <form action={signOut}>
         <button type="submit" className="flex w-full items-center gap-2 rounded-xl border border-border bg-white px-3 py-1.5 hover:bg-tint">
           <LogOut aria-hidden className="h-4 w-4" />
